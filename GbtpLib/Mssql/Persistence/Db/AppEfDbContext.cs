@@ -56,6 +56,8 @@ namespace GbtpLib.Mssql.Persistence.Db
         public DbSet<QltBtrInoutInspEntity> QltBtrInoutInsps { get; set; }
         public DbSet<QltBtrDigInspDtlResultEntity> QltBtrDigInspDtlResults { get; set; }
 
+        public DbSet<MstUserInfoEntity> UserInfos { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

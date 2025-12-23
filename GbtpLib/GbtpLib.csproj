@@ -61,11 +61,40 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\AppSettings.cs" />
+    <Compile Include="Configuration\DbConnectionSettings.cs" />
     <Compile Include="Logging\Logging.cs" />
     <Compile Include="Logging\TraceScope.cs" />
     <Compile Include="Monitoring\AppHealth.cs" />
     <Compile Include="Mssql\Application\Abstractions\IUnitOfWork.cs" />
+    <Compile Include="Mssql\Application\Composition\ServiceFactory.cs" />
+    <Compile Include="Mssql\Application\UseCases\AcknowledgeCommandUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\CommandPollingUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\CommandSpUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\CreateLabelAndAssignSlotUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\DeleteLabelFlowUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\EnqueueCommandUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\FilterMetadataUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\GetCodeUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\GradeLookupUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\IncomeFlowsUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\InitializeSlotsUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\LabelCreationMetadataUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\LabelCreationUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\LabelUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\LoginUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\MetadataUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\OutcomeFlowsUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\UpdateWarehouseSlotUseCase.cs" />
+    <Compile Include="Mssql\Domain\Dtos.cs" />
+    <Compile Include="Mssql\Domain\Enums.cs" />
+    <Compile Include="Mssql\Domain\ReadModels\CodeNameDto.cs" />
+    <Compile Include="Mssql\Domain\ReadModels\DefectBatteryDto.cs" />
+    <Compile Include="Mssql\Domain\ReadModels\LabelCreationInfoDto.cs" />
+    <Compile Include="Mssql\Domain\ReadModels\SlotInfoDto.cs" />
+    <Compile Include="Mssql\Domain\ReadModels\WarehouseCodeNameDto.cs" />
+    <Compile Include="Mssql\Domain\ReadModels\WarehouseSlotLayoutDto.cs" />
     <Compile Include="Mssql\Persistence\Abstractions\IAppDbContext.cs" />
+    <Compile Include="Mssql\Persistence\Abstractions\IAppDbContextFactory.cs" />
     <Compile Include="Mssql\Persistence\Configurations\InvWarehouseConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\InvWarehouseHistConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\ItfCmdDataConfiguration.cs" />
@@ -79,7 +108,6 @@
     <Compile Include="Mssql\Persistence\Configurations\ItfSysConCheckConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\ItfWmsCmdDataConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\ItfWmsCmdDataHistConfiguration.cs" />
-    <Compile Include="Mssql\Persistence\Configurations\LabelConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\MstAgvWrkRankConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\MstBtrMakeConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\MstBtrTypeConfiguration.cs" />
@@ -93,6 +121,7 @@
     <Compile Include="Mssql\Persistence\Configurations\MstFactoryConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Configurations\MstInspKindConfiguration.cs" />
     <Compile Include="Mssql\Persistence\Db\AppDbContext.cs" />
+    <Compile Include="Mssql\Persistence\Db\AppDbContextFactory.cs" />
     <Compile Include="Mssql\Persistence\Db\AppEfDbContext.cs" />
     <Compile Include="Mssql\Persistence\Entities\InvWarehouseEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\InvWarehouseHistEntity.cs" />
@@ -107,8 +136,8 @@
     <Compile Include="Mssql\Persistence\Entities\ItfSysConCheckEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\ItfWmsCmdDataEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\ItfWmsCmdDataHistEntity.cs" />
-    <Compile Include="Mssql\Persistence\Entities\LabelEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstAgvWrkRankEntity.cs" />
+    <Compile Include="Mssql\Persistence\Entities\MstBtrEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstBtrMakeEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstBtrTypeEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstCarEntity.cs" />
@@ -127,6 +156,8 @@
     <Compile Include="Mssql\Persistence\Entities\MstPopEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstPopMachineEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstProcessEntity.cs" />
+    <Compile Include="Mssql\Persistence\Entities\MstSiteEntity.cs" />
+    <Compile Include="Mssql\Persistence\Entities\MstUserInfoEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstWarehouseCellEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\MstWarehouseEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\QltBtrDigInspDtlResultEntity.cs" />
@@ -134,20 +165,62 @@
     <Compile Include="Mssql\Persistence\Entities\QltBtrInspEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\SysGridEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\SysMenuMstEntity.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IDefectBatteryQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IInvWarehouseRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IItfCmdDataQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IItfCmdDataRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\ILabelCreationQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMetadataQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstBtrRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstBtrTypeRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstCodeRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstUserInfoRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IQltBtrInspQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\ISlotQueryRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IStoredProcedureExecutor.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IWarehouseLayoutQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IWarehouseQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\DefectBatteryQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\InvWarehouseRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\ItfCmdDataQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\ItfCmdDataRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\LabelCreationQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\MetadataQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\MstBtrRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\MstBtrTypeRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\MstCodeRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\MstUserInfoRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\QltBtrInspQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\SlotQueryRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\StoredProcedureExecutor.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\WarehouseLayoutQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\WarehouseQueries.cs" />
     <Compile Include="Mssql\Persistence\UnitOfWork\EfUnitOfWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Security\UserContext.cs" />
+    <None Include="Reference\MsSqlBasic.cs" />
+    <None Include="Reference\IncomeSystem\AllBatterySlotViewModel.cs" />
+    <None Include="Reference\IncomeSystem\EnvVariableViewModel.cs" />
+    <None Include="Reference\IncomeSystem\LabelCreationViewModel.cs" />
+    <None Include="Reference\IncomeSystem\LabelPrintViewModel.cs" />
+    <None Include="Reference\IncomeSystem\LoginViewModel.cs" />
+    <None Include="Reference\IncomeSystem\RepoMain.cs" />
+    <None Include="Reference\IncomeSystem\TransferRequestViewModel.cs" />
+    <None Include="Reference\IncomeSystem\UnloadingZoneViewModel.cs" />
+    <None Include="Reference\OutcomeSystem\AllBatterySlotViewModel.cs" />
+    <None Include="Reference\OutcomeSystem\BatteryTransferStatusViewModel.cs" />
+    <None Include="Reference\OutcomeSystem\DefectBatteryViewModel.cs" />
+    <None Include="Reference\OutcomeSystem\EnvVariableViewModel.cs" />
+    <None Include="Reference\OutcomeSystem\LoginViewModel.cs" />
+    <None Include="Reference\OutcomeSystem\OutcomeWaitBatteryViewModel.cs" />
+    <None Include="Reference\OutcomeSystem\RepoMain.cs" />
+    <Compile Include="User\UserContext.cs" />
     <Compile Include="UI\CommonStyles.cs" />
     <Compile Include="UI\Controls\StatusBadge.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Mssql\Application\UseCases\" />
-    <Folder Include="Mssql\Domain\" />
-    <Folder Include="Mssql\Persistence\Repositories\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
 </Project>

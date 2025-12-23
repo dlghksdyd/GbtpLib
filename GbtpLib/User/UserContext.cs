@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GbtpLib.Security
+namespace GbtpLib.User
 {
     public class UserContext
     {

@@ -1,0 +1,97 @@
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using GbtpLib.Mssql.Domain.ReadModels;
+using GbtpLib.Mssql.Persistence.Abstractions;
+using GbtpLib.Mssql.Persistence.Entities;
+using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+
+namespace GbtpLib.Mssql.Persistence.Repositories
+{
+    public class SlotQueryRepository : ISlotQueryRepository
+    {
+        private readonly IAppDbContext _db;
+        public SlotQueryRepository(IAppDbContext db)
+        {
+            _db = db ?? throw new ArgumentNullException(nameof(db));
+        }
+
+        public Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
+        {
+            return GetSlotsAsync(siteCode, factCode, whCode, ct);
+        }
+
+        public Task<IReadOnlyList<SlotInfoDto>> GetLoadingSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
+        {
+            return GetSlotsAsync(siteCode, factCode, whCode, ct);
+        }
+
+        private async Task<IReadOnlyList<SlotInfoDto>> GetSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            // Latest inspect seq per label where diag status = 'Y'
+            var latest = _db.Set<QltBtrInspEntity>()
+                .Where(q => q.BatteryDiagStatus == "Y")
+                .GroupBy(q => q.LabelId)
+                .Select(g => new { LabelId = g.Key, InspectSeq = g.Max(x => x.InspectSeq) });
+
+            var query = from inv in _db.Set<InvWarehouseEntity>()
+                        // left join latest inspection key on label
+                        join li in latest on inv.LabelId equals li.LabelId into liJoin
+                        from li in liJoin.DefaultIfEmpty()
+                        // left join actual inspection row matching latest key
+                        join inspAll in _db.Set<QltBtrInspEntity>() on new { inv.LabelId, InspectSeq = (string)li.InspectSeq } equals new { inspAll.LabelId, inspAll.InspectSeq } into inspJoin
+                        from insp in inspJoin.DefaultIfEmpty()
+                        // other left joins
+                        join site in _db.Set<MstSiteEntity>() on inv.SiteCode equals site.SiteCode into siteJoin
+                        from site in siteJoin.DefaultIfEmpty()
+                        join btr in _db.Set<MstBtrEntity>() on inv.LabelId equals btr.LabelId into btrJoin
+                        from btr in btrJoin.DefaultIfEmpty()
+                        join btrType in _db.Set<MstBtrTypeEntity>() on btr.BatteryTypeNo equals btrType.BatteryTypeNo into btrTypeJoin
+                        from btrType in btrTypeJoin.DefaultIfEmpty()
+                        join carMake in _db.Set<MstCarMakeEntity>() on btrType.CarMakeCode equals carMake.CarMakeCode into carMakeJoin
+                        from carMake in carMakeJoin.DefaultIfEmpty()
+                        join car in _db.Set<MstCarEntity>() on btrType.CarCode equals car.CarCode into carJoin
+                        from car in carJoin.DefaultIfEmpty()
+                        join btrMake in _db.Set<MstBtrMakeEntity>() on btrType.BatteryMakeCode equals btrMake.BatteryMakeCode into btrMakeJoin
+                        from btrMake in btrMakeJoin.DefaultIfEmpty()
+                        where inv.SiteCode == siteCode
+                           && inv.FactoryCode == factCode
+                           && inv.WarehouseCode == whCode
+                           && (btr == null || btr.UseYn == "Y")
+                        select new { inv, insp, site, btr, btrType, carMake, car, btrMake };
+
+            var list = await query
+                .Select(x => new SlotInfoDto
+                {
+                    Row = SafeParseInt(x.inv.Row),
+                    Col = SafeParseInt(x.inv.Col),
+                    Level = SafeParseInt(x.inv.Level),
+                    LabelId = x.inv.LabelId,
+                    InspectGrade = x.insp != null ? x.insp.InspectGrade : null,
+                    SiteName = x.site != null ? x.site.SiteName : null,
+                    CollectDate = x.btr != null ? x.btr.CollectDate : null,
+                    CollectReason = x.btr != null ? x.btr.CollectReason : null,
+                    PackModuleCode = x.btr != null ? x.btr.PackModuleCode : null,
+                    BatteryTypeName = x.btrType != null ? x.btrType.BatteryTypeName : null,
+                    CarReleaseYear = x.btrType != null ? x.btrType.CarReleaseYear : null,
+                    CarMakeName = x.carMake != null ? x.carMake.CarMakeName : null,
+                    CarName = x.car != null ? x.car.CarName : null,
+                    BatteryMakeName = x.btrMake != null ? x.btrMake.BatteryMakeName : null,
+                })
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+
+            return list;
+        }
+
+        private static int SafeParseInt(string s)
+        {
+            int v; return int.TryParse(s, out v) ? v : 0;
+        }
+    }
+}
