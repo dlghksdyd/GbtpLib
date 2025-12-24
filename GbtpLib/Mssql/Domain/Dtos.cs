@@ -46,7 +46,7 @@ namespace GbtpLib.Mssql.Domain
         public int LoadingColumn { get; set; }
         public int LoadingLevel { get; set; }
 
-        public RequestStatus Status { get; set; }
+        public ERequestStatus Status { get; set; }
     }
 
     public class StoredProcedureParamDto

@@ -1,10 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
-using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Mssql.Domain;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -13,7 +12,6 @@ namespace GbtpLib.Mssql.Application.UseCases
         private readonly IUnitOfWork _uow;
         private readonly IItfCmdDataQueries _queries;
         private readonly IItfCmdDataRepository _repo;
-
         public CommandPollingUseCase(IUnitOfWork uow, IItfCmdDataQueries queries, IItfCmdDataRepository repo)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
@@ -21,26 +19,22 @@ namespace GbtpLib.Mssql.Application.UseCases
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 
-        public async Task<bool> WaitForAndAcknowledgeAsync(IfCmd cmdToWait, string data1, CancellationToken ct = default(CancellationToken))
+        public async Task<bool> WaitForAndAcknowledgeAsync(EIfCmd cmdToWait, string data1, CancellationToken ct = default(CancellationToken))
         {
-            // Single-shot: check once; caller can loop externally
-            var pending = await _queries.GetPendingAsync(cmdToWait.ToString(), data1, ct).ConfigureAwait(false);
-            if (pending.Count > 0)
+            await _uow.BeginAsync(ct).ConfigureAwait(false);
+            try
             {
-                await _uow.BeginAsync(ct).ConfigureAwait(false);
-                try
-                {
-                    var affected = await _repo.AcknowledgeAsync(cmdToWait, data1, ct).ConfigureAwait(false);
-                    await _uow.CommitAsync(ct).ConfigureAwait(false);
-                    return affected > 0;
-                }
-                catch
-                {
-                    await _uow.RollbackAsync(ct).ConfigureAwait(false);
-                    throw;
-                }
+                var list = await _queries.GetPendingAsync(cmdToWait.ToString(), data1, ct).ConfigureAwait(false);
+                if (list.Count == 0) { await _uow.RollbackAsync(ct).ConfigureAwait(false); return false; }
+                var affected = await _repo.AcknowledgeAsync(cmdToWait, data1, ct).ConfigureAwait(false);
+                await _uow.CommitAsync(ct).ConfigureAwait(false);
+                return affected > 0;
             }
-            return false;
+            catch
+            {
+                await _uow.RollbackAsync(ct).ConfigureAwait(false);
+                throw;
+            }
         }
     }
 }

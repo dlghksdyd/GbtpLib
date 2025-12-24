@@ -26,7 +26,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             {
                 var parameters = new Dictionary<string, object>
                 {
-                    {"@IN_CMD_CD", IfCmd.AA2.ToString()},
+                    {"@IN_CMD_CD", EIfCmd.AA2.ToString()},
                     {"@IN_DATA1", label},
                     {"@IN_DATA2", row},
                     {"@IN_DATA3", col},
@@ -51,7 +51,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             {
                 var parameters = new Dictionary<string, object>
                 {
-                    {"@IN_CMD_CD", IfCmd.AA4.ToString()},
+                    {"@IN_CMD_CD", EIfCmd.AA4.ToString()},
                     {"@IN_DATA1", label},
                     {"@IN_DATA2", row},
                     {"@IN_DATA3", col},
@@ -76,7 +76,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             {
                 var parameters = new Dictionary<string, object>
                 {
-                    {"@IN_CMD_CD", IfCmd.EE7.ToString()},
+                    {"@IN_CMD_CD", EIfCmd.EE7.ToString()},
                     {"@IN_DATA1", label},
                     {"@IN_DATA2", defectRow},
                     {"@IN_DATA3", defectCol},

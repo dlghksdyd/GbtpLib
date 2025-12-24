@@ -87,12 +87,7 @@
     <Compile Include="Mssql\Application\UseCases\UpdateWarehouseSlotUseCase.cs" />
     <Compile Include="Mssql\Domain\Dtos.cs" />
     <Compile Include="Mssql\Domain\Enums.cs" />
-    <Compile Include="Mssql\Domain\ReadModels\CodeNameDto.cs" />
-    <Compile Include="Mssql\Domain\ReadModels\DefectBatteryDto.cs" />
-    <Compile Include="Mssql\Domain\ReadModels\LabelCreationInfoDto.cs" />
-    <Compile Include="Mssql\Domain\ReadModels\SlotInfoDto.cs" />
-    <Compile Include="Mssql\Domain\ReadModels\WarehouseCodeNameDto.cs" />
-    <Compile Include="Mssql\Domain\ReadModels\WarehouseSlotLayoutDto.cs" />
+    <Compile Include="Mssql\Domain\DtosReadOnly.cs" />
     <Compile Include="Mssql\Persistence\Abstractions\IAppDbContext.cs" />
     <Compile Include="Mssql\Persistence\Abstractions\IAppDbContextFactory.cs" />
     <Compile Include="Mssql\Persistence\Configurations\InvWarehouseConfiguration.cs" />
@@ -197,6 +192,7 @@
     <Compile Include="Mssql\Persistence\Repositories\WarehouseQueries.cs" />
     <Compile Include="Mssql\Persistence\UnitOfWork\EfUnitOfWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Reference\IF_CMD.csv" />
     <None Include="Reference\MsSqlBasic.cs" />
     <None Include="Reference\IncomeSystem\AllBatterySlotViewModel.cs" />
     <None Include="Reference\IncomeSystem\EnvVariableViewModel.cs" />
