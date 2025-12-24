@@ -64,7 +64,7 @@
     <Compile Include="Logging\TraceScope.cs" />
     <Compile Include="Monitoring\AppHealth.cs" />
     <Compile Include="Mssql\Application\Abstractions\IUnitOfWork.cs" />
-    <Compile Include="Mssql\Application\Services\ServiceFactory.cs" />
+    <Compile Include="Mssql\Application\Services\MssqlServiceHub.cs" />
     <Compile Include="Mssql\Application\UseCases\AcknowledgeCommandUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\CommandPollingUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\CommandSpUseCases.cs" />

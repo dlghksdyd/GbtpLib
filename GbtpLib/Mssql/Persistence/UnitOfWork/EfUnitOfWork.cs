@@ -12,6 +12,7 @@ namespace GbtpLib.Mssql.Persistence.UnitOfWork
         private readonly IAppDbContext _db;
         private bool _active;
         private bool _disposed;
+        private bool _ownsTransaction;
 
         public EfUnitOfWork(IAppDbContext db)
         {
@@ -28,7 +29,17 @@ namespace GbtpLib.Mssql.Persistence.UnitOfWork
         {
             EnsureNotDisposed();
             if (_active) return;
+
+            // Reuse existing transaction if already started elsewhere
+            if (_db.HasActiveTransaction)
+            {
+                _ownsTransaction = false;
+                _active = true;
+                return;
+            }
+
             _db.BeginTransaction();
+            _ownsTransaction = true;
             _active = true;
         }
 
@@ -36,16 +47,28 @@ namespace GbtpLib.Mssql.Persistence.UnitOfWork
         {
             EnsureNotDisposed();
             if (!_active) return;
-            _db.Commit();
+
+            if (_ownsTransaction)
+            {
+                _db.Commit();
+            }
+
             _active = false;
+            _ownsTransaction = false;
         }
 
         public void Rollback()
         {
             EnsureNotDisposed();
             if (!_active) return;
-            _db.Rollback();
+
+            if (_ownsTransaction)
+            {
+                _db.Rollback();
+            }
+
             _active = false;
+            _ownsTransaction = false;
         }
 
         public Task BeginAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -66,16 +89,28 @@ namespace GbtpLib.Mssql.Persistence.UnitOfWork
         {
             EnsureNotDisposed();
             if (!_active) return;
-            await _db.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+            if (_ownsTransaction)
+            {
+                await _db.CommitAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             _active = false;
+            _ownsTransaction = false;
         }
 
         public async Task RollbackAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             EnsureNotDisposed();
             if (!_active) return;
-            await _db.RollbackAsync(cancellationToken).ConfigureAwait(false);
+
+            if (_ownsTransaction)
+            {
+                await _db.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             _active = false;
+            _ownsTransaction = false;
         }
 
         public void Dispose()
@@ -85,9 +120,19 @@ namespace GbtpLib.Mssql.Persistence.UnitOfWork
             {
                 if (_active)
                 {
-                    try { _db.Rollback(); }
+                    try
+                    {
+                        if (_ownsTransaction)
+                        {
+                            _db.Rollback();
+                        }
+                    }
                     catch { /* swallow */ }
-                    _active = false;
+                    finally
+                    {
+                        _active = false;
+                        _ownsTransaction = false;
+                    }
                 }
             }
             finally

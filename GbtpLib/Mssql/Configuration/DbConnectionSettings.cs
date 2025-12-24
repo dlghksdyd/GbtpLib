@@ -2,7 +2,7 @@ using System;
 
 namespace GbtpLib.Mssql.Configuration
 {
-    public static class DbConnectionSettings
+    internal static class DbConnectionSettings
     {
         private static string _connectionString;
         private static bool _initialized;
