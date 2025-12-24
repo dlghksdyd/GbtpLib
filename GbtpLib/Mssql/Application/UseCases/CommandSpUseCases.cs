@@ -21,7 +21,6 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> RequestAcceptAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var parameters = new Dictionary<string, object>
@@ -34,19 +33,16 @@ namespace GbtpLib.Mssql.Application.UseCases
                     {"@IN_REQ_SYS", reqSys},
                 };
                 var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return result >= 0; // NonQuery returns affected rows (may be 0)
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }
 
         public async Task<bool> RequestRejectAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var parameters = new Dictionary<string, object>
@@ -59,19 +55,16 @@ namespace GbtpLib.Mssql.Application.UseCases
                     {"@IN_REQ_SYS", reqSys},
                 };
                 var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return result >= 0;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }
 
         public async Task<bool> RequestDefectToLoadingAsync(string label, int defectRow, int defectCol, int defectLvl, int loadingRow, int loadingCol, int loadingLvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var parameters = new Dictionary<string, object>
@@ -87,12 +80,10 @@ namespace GbtpLib.Mssql.Application.UseCases
                     {"@IN_REQ_SYS", reqSys},
                 };
                 var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return result >= 0;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

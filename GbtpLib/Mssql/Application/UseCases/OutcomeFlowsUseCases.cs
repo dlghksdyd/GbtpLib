@@ -21,34 +21,28 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> ProcessOutcomeToLoadingAsync(string label, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var ok = await new CommandPollingUseCase(_uow, _queries, _repo)
                     .WaitForAndAcknowledgeAsync(EIfCmd.AA3, label, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return ok;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }
 
         public async Task<bool> ProcessDefectToLoadingCompletedAsync(string label, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var ok = await new CommandPollingUseCase(_uow, _queries, _repo)
                     .WaitForAndAcknowledgeAsync(EIfCmd.EE8, label, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return ok;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

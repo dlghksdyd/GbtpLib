@@ -21,18 +21,15 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> WaitForAndAcknowledgeAsync(EIfCmd cmdToWait, string data1, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var list = await _queries.GetPendingAsync(cmdToWait.ToString(), data1, ct).ConfigureAwait(false);
-                if (list.Count == 0) { await _uow.RollbackAsync(ct).ConfigureAwait(false); return false; }
+                if (list.Count == 0) { return false; }
                 var affected = await _repo.AcknowledgeAsync(cmdToWait, data1, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return affected > 0;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

@@ -21,17 +21,14 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> ProcessAsync(string label, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var ok = await new CommandPollingUseCase(_uow, _queries, _repo)
                     .WaitForAndAcknowledgeAsync(EIfCmd.AA3, label, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return ok;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

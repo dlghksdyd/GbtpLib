@@ -19,16 +19,13 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> AcknowledgeAsync(EIfCmd cmd, string data1, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var affected = await _repo.AcknowledgeAsync(cmd, data1, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return affected > 0;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }
