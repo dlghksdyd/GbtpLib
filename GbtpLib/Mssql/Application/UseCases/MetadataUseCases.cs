@@ -8,6 +8,12 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
+    /// <summary>
+    /// Retrieves site/factory metadata for selection UIs.
+    /// <para>
+    /// Methods return read-only lists of CodeNameDto; empty lists indicate no data; exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class MetadataUseCases
     {
         private readonly IUnitOfWork _uow;
@@ -19,6 +25,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             _queries = queries ?? throw new ArgumentNullException(nameof(queries));
         }
 
+        /// <summary>
+        /// Gets all sites.
+        /// </summary>
         public async Task<IReadOnlyList<CodeNameDto>> GetSitesAsync(CancellationToken ct = default(CancellationToken))
         {
             try
@@ -32,6 +41,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
+        /// <summary>
+        /// Gets factories for a given site.
+        /// </summary>
         public async Task<IReadOnlyList<CodeNameDto>> GetFactoriesAsync(string siteCode, CancellationToken ct = default(CancellationToken))
         {
             try

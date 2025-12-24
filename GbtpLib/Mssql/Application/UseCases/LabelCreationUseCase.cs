@@ -7,7 +7,12 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
-    // Combine checks similar to Reference LabelCreation flow
+    /// <summary>
+    /// Combines validations and inserts to create a label similarly to the reference flow.
+    /// <para>
+    /// Return semantics: <c>true</c> when insert affected &gt; 0 after successful battery type validation; otherwise <c>false</c>. Exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class LabelCreationUseCase
     {
         private readonly IUnitOfWork _uow;
@@ -21,6 +26,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             _btrRepo = btrRepo ?? throw new ArgumentNullException(nameof(btrRepo));
         }
 
+        /// <summary>
+        /// Creates the label after validating the battery type.
+        /// </summary>
         public async Task<bool> CreateAsync(string labelId, int batteryTypeNo, string packModuleCode, string siteCode, string collectDate, string collectReason, CancellationToken ct = default(CancellationToken))
         {
             // Fetch battery type meta to validate/extract fields

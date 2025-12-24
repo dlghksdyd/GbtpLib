@@ -1,6 +1,5 @@
 namespace GbtpLib.Mssql.Domain
 {
-    // Unified DTOs for read models
     public class CodeNameDto { public string Code { get; set; } public string Name { get; set; } }
 
     public class WarehouseCodeNameDto { public string Code { get; set; } public string Name { get; set; } }

@@ -7,6 +7,12 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
+    /// <summary>
+    /// Creates a label record in MST_BTR.
+    /// <para>
+    /// Return semantics: <c>true</c> when insert affected &gt; 0; otherwise <c>false</c>. Exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class CreateLabelUseCase
     {
         private readonly IUnitOfWork _uow;
@@ -18,6 +24,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             _btrRepo = btrRepo ?? throw new ArgumentNullException(nameof(btrRepo));
         }
 
+        /// <summary>
+        /// Creates the label.
+        /// </summary>
         public async Task<bool> CreateAsync(MstBtrEntity entity, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -32,6 +41,12 @@ namespace GbtpLib.Mssql.Application.UseCases
         }
     }
 
+    /// <summary>
+    /// Deletes a label record in MST_BTR.
+    /// <para>
+    /// Return semantics: <c>true</c> when delete affected &gt; 0; otherwise <c>false</c>. Exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class DeleteLabelUseCase
     {
         private readonly IUnitOfWork _uow;
@@ -43,6 +58,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             _btrRepo = btrRepo ?? throw new ArgumentNullException(nameof(btrRepo));
         }
 
+        /// <summary>
+        /// Deletes the label.
+        /// </summary>
         public async Task<bool> DeleteAsync(string labelId, CancellationToken ct = default(CancellationToken))
         {
             try

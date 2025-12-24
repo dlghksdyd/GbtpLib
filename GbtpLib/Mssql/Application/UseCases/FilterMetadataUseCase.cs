@@ -7,7 +7,12 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
-    // Provides dropdown lists for defect/outcome filter UIs
+    /// <summary>
+    /// Provides dropdown lists for defect/outcome filter UIs.
+    /// <para>
+    /// Methods return read-only lists; empty lists indicate no data; exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class FilterMetadataUseCase
     {
         private readonly IUnitOfWork _uow;

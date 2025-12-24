@@ -8,6 +8,12 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
+    /// <summary>
+    /// Initializes UI slot lists by querying outcome-wait and loading slot groups.
+    /// <para>
+    /// Return semantics: methods return read-only lists; empty lists indicate no data; exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class InitializeSlotsUseCase
     {
         private readonly IUnitOfWork _uow;
@@ -19,6 +25,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 
+        /// <summary>
+        /// Gets outcome-wait slots.
+        /// </summary>
         public async Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitAsync(string site, string fact, string wh, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -32,6 +41,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
+        /// <summary>
+        /// Gets loading slots.
+        /// </summary>
         public async Task<IReadOnlyList<SlotInfoDto>> GetLoadingAsync(string site, string fact, string wh, CancellationToken ct = default(CancellationToken))
         {
             try

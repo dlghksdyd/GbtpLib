@@ -7,6 +7,15 @@ using GbtpLib.Mssql.Domain;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
+    /// <summary>
+    /// Acknowledges queued interface commands by updating their status.
+    /// <para>
+    /// Return semantics:
+    /// - <c>true</c>: At least one matching row was acknowledged (affected &gt; 0).
+    /// - <c>false</c>: No matching rows found or updated.
+    /// - Exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class AcknowledgeCommandUseCase
     {
         private readonly IUnitOfWork _uow;
@@ -17,6 +26,9 @@ namespace GbtpLib.Mssql.Application.UseCases
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 
+        /// <summary>
+        /// Acknowledges a command for the given key.
+        /// </summary>
         public async Task<bool> AcknowledgeAsync(EIfCmd cmd, string data1, CancellationToken ct = default(CancellationToken))
         {
             try

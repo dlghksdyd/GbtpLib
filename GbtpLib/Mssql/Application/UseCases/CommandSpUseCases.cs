@@ -8,7 +8,16 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
-    // UseCases for SP-based interface commands to mimic Reference behavior
+    /// <summary>
+    /// Issues interface commands via stored procedures to mimic reference behavior.
+    /// <para>
+    /// Calls BRDS_ITF_CMD_DATA_SET with command and payload parameters.
+    /// Return semantics:
+    /// - <c>true</c>: Stored procedure executed successfully; the returned affected rows can be &gt;= 0.
+    /// - <c>false</c>: Not used; exceptions indicate failure paths.
+    /// - Exceptions are propagated.
+    /// </para>
+    /// </summary>
     public class RequestTransferUseCase
     {
         private readonly IUnitOfWork _uow;
@@ -19,6 +28,16 @@ namespace GbtpLib.Mssql.Application.UseCases
             _sp = sp ?? throw new ArgumentNullException(nameof(sp));
         }
 
+        /// <summary>
+        /// Requests transfer acceptance (AA2) with position parameters.
+        /// </summary>
+        /// <param name="label">Label identifier.</param>
+        /// <param name="row">Row index.</param>
+        /// <param name="col">Column index.</param>
+        /// <param name="lvl">Level index.</param>
+        /// <param name="reqSys">Request system code.</param>
+        /// <param name="ct">Cancellation token.</param>
+        /// <returns><c>true</c> if SP executed (affected rows &gt;= 0).</returns>
         public async Task<bool> RequestAcceptAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -41,6 +60,10 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
+        /// <summary>
+        /// Requests transfer rejection (AA4) with position parameters.
+        /// </summary>
+        /// <returns><c>true</c> if SP executed (affected rows &gt;= 0).</returns>
         public async Task<bool> RequestRejectAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -63,6 +86,10 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
+        /// <summary>
+        /// Requests a defect-to-loading operation (EE7) providing both defect and loading positions.
+        /// </summary>
+        /// <returns><c>true</c> if SP executed (affected rows &gt;= 0).</returns>
         public async Task<bool> RequestDefectToLoadingAsync(string label, int defectRow, int defectCol, int defectLvl, int loadingRow, int loadingCol, int loadingLvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
             try
