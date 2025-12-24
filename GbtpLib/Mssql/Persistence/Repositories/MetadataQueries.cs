@@ -4,7 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GbtpLib.Mssql.Domain.ReadModels;
+using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Abstractions;
 using GbtpLib.Mssql.Persistence.Entities;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;

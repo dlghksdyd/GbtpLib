@@ -22,24 +22,19 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> ExecuteAsync(string labelId, string siteCode = null, string factoryCode = null, string warehouseCode = null, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var del = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
                 if (del < 1)
                 {
-                    await _uow.RollbackAsync(ct).ConfigureAwait(false);
                     return false;
                 }
 
                 await _whRepo.ClearLabelByLabelIdAsync(labelId, siteCode, factoryCode, warehouseCode, ct).ConfigureAwait(false);
-
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return true;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

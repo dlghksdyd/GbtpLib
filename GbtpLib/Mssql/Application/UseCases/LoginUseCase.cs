@@ -17,20 +17,17 @@ namespace GbtpLib.Mssql.Application.UseCases
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 
-        public async Task<(bool success, bool isAdmin)> LoginAsync(string userId, string password, CancellationToken ct = default(CancellationToken))
+        public async Task<(bool success, bool isAdmin)> LoginAsync(string userId, string password, CancellationToken ct = default)
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var user = await _repo.GetByIdPasswordAsync(userId, password, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 if (user == null) return (false, false);
                 var isAdmin = string.Equals(user.UserGroupCode, "ADMN", StringComparison.OrdinalIgnoreCase);
                 return (true, isAdmin);
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

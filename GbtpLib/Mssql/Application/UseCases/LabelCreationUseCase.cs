@@ -27,7 +27,6 @@ namespace GbtpLib.Mssql.Application.UseCases
             var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
             if (type == null) return false;
 
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var entity = new MstBtrEntity
@@ -48,12 +47,10 @@ namespace GbtpLib.Mssql.Application.UseCases
                 };
 
                 var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return affected > 0;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

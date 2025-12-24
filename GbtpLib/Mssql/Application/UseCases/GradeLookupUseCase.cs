@@ -19,16 +19,13 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<string> GetLatestGradeAsync(string labelId, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var grade = await _queries.GetLatestGradeAsync(labelId, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return grade;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

@@ -20,33 +20,28 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<IReadOnlyList<string>> GetCarMakeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
-            try { var list = await _queries.GetCarMakeNamesAsync(ct).ConfigureAwait(false); await _uow.CommitAsync(ct).ConfigureAwait(false); return list; }
-            catch { await _uow.RollbackAsync(ct).ConfigureAwait(false); throw; }
+            try { var list = await _queries.GetCarMakeNamesAsync(ct).ConfigureAwait(false); return list; }
+            catch { throw; }
         }
         public async Task<IReadOnlyList<string>> GetCarNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
-            try { var list = await _queries.GetCarNamesAsync(ct).ConfigureAwait(false); await _uow.CommitAsync(ct).ConfigureAwait(false); return list; }
-            catch { await _uow.RollbackAsync(ct).ConfigureAwait(false); throw; }
+            try { var list = await _queries.GetCarNamesAsync(ct).ConfigureAwait(false); return list; }
+            catch { throw; }
         }
         public async Task<IReadOnlyList<string>> GetBatteryMakeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
-            try { var list = await _queries.GetBatteryMakeNamesAsync(ct).ConfigureAwait(false); await _uow.CommitAsync(ct).ConfigureAwait(false); return list; }
-            catch { await _uow.RollbackAsync(ct).ConfigureAwait(false); throw; }
+            try { var list = await _queries.GetBatteryMakeNamesAsync(ct).ConfigureAwait(false); return list; }
+            catch { throw; }
         }
         public async Task<IReadOnlyList<string>> GetBatteryTypeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
-            try { var list = await _queries.GetBatteryTypeNamesAsync(ct).ConfigureAwait(false); await _uow.CommitAsync(ct).ConfigureAwait(false); return list; }
-            catch { await _uow.RollbackAsync(ct).ConfigureAwait(false); throw; }
+            try { var list = await _queries.GetBatteryTypeNamesAsync(ct).ConfigureAwait(false); return list; }
+            catch { throw; }
         }
         public async Task<IReadOnlyList<string>> GetReleaseYearsAsync(CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
-            try { var list = await _queries.GetReleaseYearsAsync(ct).ConfigureAwait(false); await _uow.CommitAsync(ct).ConfigureAwait(false); return list; }
-            catch { await _uow.RollbackAsync(ct).ConfigureAwait(false); throw; }
+            try { var list = await _queries.GetReleaseYearsAsync(ct).ConfigureAwait(false); return list; }
+            catch { throw; }
         }
     }
 }

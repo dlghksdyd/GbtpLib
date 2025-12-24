@@ -20,16 +20,13 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> CreateAsync(MstBtrEntity entity, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return affected > 0;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }
@@ -48,16 +45,13 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<bool> DeleteAsync(string labelId, CancellationToken ct = default(CancellationToken))
         {
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var affected = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return affected > 0;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }

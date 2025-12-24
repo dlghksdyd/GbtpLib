@@ -20,16 +20,13 @@ namespace GbtpLib.Mssql.Application.UseCases
         public async Task<string> GetBatteryStateCodeAsync(string codeName, CancellationToken ct = default(CancellationToken))
         {
             // Reference: STS003
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var code = await _repo.GetCodeAsync("STS003", codeName, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return code;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }
@@ -37,16 +34,13 @@ namespace GbtpLib.Mssql.Application.UseCases
         public async Task<string> GetIncomeDivisionCodeAsync(string codeName, CancellationToken ct = default(CancellationToken))
         {
             // Reference: INV001
-            await _uow.BeginAsync(ct).ConfigureAwait(false);
             try
             {
                 var code = await _repo.GetCodeAsync("INV001", codeName, ct).ConfigureAwait(false);
-                await _uow.CommitAsync(ct).ConfigureAwait(false);
                 return code;
             }
             catch
             {
-                await _uow.RollbackAsync(ct).ConfigureAwait(false);
                 throw;
             }
         }
