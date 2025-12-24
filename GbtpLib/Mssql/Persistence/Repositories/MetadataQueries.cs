@@ -41,6 +41,61 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             return list;
         }
 
+        public async Task<IReadOnlyList<CodeNameDto>> GetWarehousesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
+        {
+            var list = await _db.Set<MstWarehouseEntity>().AsNoTracking()
+                .Where(x => x.SiteCode == siteCode && x.FactoryCode == factoryCode && x.UseYn == "Y")
+                .OrderBy(x => x.WarehouseCode)
+                .Select(x => new CodeNameDto { Code = x.WarehouseCode, Name = x.WarehouseName })
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            return list;
+        }
+
+        public async Task<IReadOnlyList<CodeNameDto>> GetProcessesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
+        {
+            var list = await _db.Set<MstProcessEntity>().AsNoTracking()
+                .Where(x => x.SiteCode == siteCode && x.FactoryCode == factoryCode && x.UseYn == "Y")
+                .OrderBy(x => x.ListOrder)
+                .Select(x => new CodeNameDto { Code = x.ProcessCode, Name = x.ProcessName })
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            return list;
+        }
+
+        public async Task<IReadOnlyList<CodeNameDto>> GetMachinesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
+        {
+            var list = await _db.Set<MstMachineEntity>().AsNoTracking()
+                .Where(x => x.SiteCode == siteCode && x.FactoryCode == factoryCode && x.UseYn == "Y")
+                .OrderBy(x => x.ListOrder)
+                .Select(x => new CodeNameDto { Code = x.MachineCode, Name = x.MachineName })
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            return list;
+        }
+
+        public async Task<IReadOnlyList<CodeNameDto>> GetInspKindGroupsAsync(CancellationToken ct = default(CancellationToken))
+        {
+            var list = await _db.Set<MstInspKindGroupEntity>().AsNoTracking()
+                .Where(x => x.UseYn == "Y")
+                .OrderBy(x => x.ListOrder)
+                .Select(x => new CodeNameDto { Code = x.InspKindGroupCode, Name = x.InspKindGroupName })
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            return list;
+        }
+
+        public async Task<IReadOnlyList<CodeNameDto>> GetInspKindsAsync(string inspKindGroupCode, CancellationToken ct = default(CancellationToken))
+        {
+            var list = await _db.Set<MstInspKindEntity>().AsNoTracking()
+                .Where(x => x.InspKindGroupCode == inspKindGroupCode && x.UseYn == "Y")
+                .OrderBy(x => x.ListOrder)
+                .Select(x => new CodeNameDto { Code = x.InspKindCode, Name = x.InspKindName })
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            return list;
+        }
+
         public async Task<IReadOnlyList<string>> GetCarMakeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
             return await _db.Set<MstCarMakeEntity>().AsNoTracking()

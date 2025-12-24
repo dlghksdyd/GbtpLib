@@ -59,5 +59,50 @@ namespace GbtpLib.Mssql.Application.UseCases
                 throw;
             }
         }
+
+        /// <summary>
+        /// Gets warehouses for a site/factory.
+        /// </summary>
+        public async Task<IReadOnlyList<CodeNameDto>> GetWarehousesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetWarehousesAsync(siteCode, factoryCode, ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetWarehousesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets processes for a site/factory.
+        /// </summary>
+        public async Task<IReadOnlyList<CodeNameDto>> GetProcessesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetProcessesAsync(siteCode, factoryCode, ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetProcessesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets machines for a site/factory.
+        /// </summary>
+        public async Task<IReadOnlyList<CodeNameDto>> GetMachinesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetMachinesAsync(siteCode, factoryCode, ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetMachinesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets inspection kind groups.
+        /// </summary>
+        public async Task<IReadOnlyList<CodeNameDto>> GetInspKindGroupsAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetInspKindGroupsAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetInspKindGroupsAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets inspection kinds within a group.
+        /// </summary>
+        public async Task<IReadOnlyList<CodeNameDto>> GetInspKindsAsync(string inspKindGroupCode, CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetInspKindsAsync(inspKindGroupCode, ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetInspKindsAsync failed.", ex); throw; }
+        }
     }
 }

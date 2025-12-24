@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
@@ -22,6 +23,24 @@ namespace GbtpLib.Mssql.Application.UseCases
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+        }
+
+        /// <summary>
+        /// Gets all code names for a given group.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> GetNamesByGroupAsync(string group, CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _repo.GetNamesAsync(group, ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("GetCodeUseCase.GetNamesByGroupAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Resolves a code by group and code name.
+        /// </summary>
+        public async Task<string> GetCodeByGroupAsync(string group, string codeName, CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _repo.GetCodeAsync(group, codeName, ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("GetCodeUseCase.GetCodeByGroupAsync failed.", ex); throw; }
         }
 
         /// <summary>

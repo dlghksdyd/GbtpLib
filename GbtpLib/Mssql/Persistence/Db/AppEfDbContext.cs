@@ -28,6 +28,7 @@ namespace GbtpLib.Mssql.Persistence.Db
         public DbSet<ItfWmsCmdDataHistEntity> ItfWmsCmdDataHists { get; set; }
 
         public DbSet<MstAgvWrkRankEntity> AgvWorkRanks { get; set; }
+        public DbSet<MstBtrEntity> Batteries { get; set; } // ADDED: MST_BTR mapping
         public DbSet<MstBtrTypeEntity> BatteryTypes { get; set; }
         public DbSet<MstBtrMakeEntity> BatteryMakes { get; set; }
         public DbSet<MstCarMakeEntity> CarMakes { get; set; }
