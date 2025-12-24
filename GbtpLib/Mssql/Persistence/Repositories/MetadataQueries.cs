@@ -21,7 +21,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<CodeNameDto>> GetSitesAsync(CancellationToken ct = default(CancellationToken))
         {
-            var list = await _db.Set<MstSiteEntity>()
+            var list = await _db.Set<MstSiteEntity>().AsNoTracking()
                 .Where(x => x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => new CodeNameDto { Code = x.SiteCode, Name = x.SiteName })
@@ -32,7 +32,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<CodeNameDto>> GetFactoriesAsync(string siteCode, CancellationToken ct = default(CancellationToken))
         {
-            var list = await _db.Set<MstFactoryEntity>()
+            var list = await _db.Set<MstFactoryEntity>().AsNoTracking()
                 .Where(x => x.SiteCode == siteCode && x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => new CodeNameDto { Code = x.FactoryCode, Name = x.FactoryName })
@@ -43,7 +43,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<string>> GetCarMakeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            return await _db.Set<MstCarMakeEntity>()
+            return await _db.Set<MstCarMakeEntity>().AsNoTracking()
                 .Where(x => x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => x.CarMakeName)
@@ -54,7 +54,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<string>> GetCarNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            return await _db.Set<MstCarEntity>()
+            return await _db.Set<MstCarEntity>().AsNoTracking()
                 .Where(x => x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => x.CarName)
@@ -65,7 +65,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<string>> GetBatteryMakeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            return await _db.Set<MstBtrMakeEntity>()
+            return await _db.Set<MstBtrMakeEntity>().AsNoTracking()
                 .Where(x => x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => x.BatteryMakeName)
@@ -76,7 +76,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<string>> GetBatteryTypeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
-            return await _db.Set<MstBtrTypeEntity>()
+            return await _db.Set<MstBtrTypeEntity>().AsNoTracking()
                 .Where(x => x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => x.BatteryTypeName)
@@ -87,7 +87,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<string>> GetReleaseYearsAsync(CancellationToken ct = default(CancellationToken))
         {
-            return await _db.Set<MstBtrTypeEntity>()
+            return await _db.Set<MstBtrTypeEntity>().AsNoTracking()
                 .Where(x => x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => x.CarReleaseYear)

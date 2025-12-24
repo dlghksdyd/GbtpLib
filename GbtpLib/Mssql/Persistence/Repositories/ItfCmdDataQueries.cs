@@ -23,6 +23,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             ct.ThrowIfCancellationRequested();
 
             var list = await _db.Set<ItfCmdDataEntity>()
+                .AsNoTracking()
                 .Where(x => x.CommandCode == cmdCode && x.Data1 == data1 && x.IfFlag == "C")
                 .ToListAsync(ct)
                 .ConfigureAwait(false);

@@ -20,7 +20,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         public Task<MstUserInfoEntity> GetByIdPasswordAsync(string userId, string password, CancellationToken ct = default(CancellationToken))
         {
             ct.ThrowIfCancellationRequested();
-            return _db.Set<MstUserInfoEntity>()
+            return _db.Set<MstUserInfoEntity>().AsNoTracking()
                 .Where(x => x.UserId == userId && x.Password == password)
                 .FirstOrDefaultAsync(ct);
         }

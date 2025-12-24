@@ -34,30 +34,30 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             ct.ThrowIfCancellationRequested();
 
             // Latest inspect seq per label where diag status = 'Y'
-            var latest = _db.Set<QltBtrInspEntity>()
+            var latest = _db.Set<QltBtrInspEntity>().AsNoTracking()
                 .Where(q => q.BatteryDiagStatus == "Y")
                 .GroupBy(q => q.LabelId)
                 .Select(g => new { LabelId = g.Key, InspectSeq = g.Max(x => x.InspectSeq) });
 
-            var query = from inv in _db.Set<InvWarehouseEntity>()
+            var query = from inv in _db.Set<InvWarehouseEntity>().AsNoTracking()
                         // left join latest inspection key on label
                         join li in latest on inv.LabelId equals li.LabelId into liJoin
                         from li in liJoin.DefaultIfEmpty()
                         // left join actual inspection row matching latest key
-                        join inspAll in _db.Set<QltBtrInspEntity>() on new { inv.LabelId, InspectSeq = (string)li.InspectSeq } equals new { inspAll.LabelId, inspAll.InspectSeq } into inspJoin
+                        join inspAll in _db.Set<QltBtrInspEntity>().AsNoTracking() on new { inv.LabelId, InspectSeq = (string)li.InspectSeq } equals new { inspAll.LabelId, inspAll.InspectSeq } into inspJoin
                         from insp in inspJoin.DefaultIfEmpty()
                         // other left joins
-                        join site in _db.Set<MstSiteEntity>() on inv.SiteCode equals site.SiteCode into siteJoin
+                        join site in _db.Set<MstSiteEntity>().AsNoTracking() on inv.SiteCode equals site.SiteCode into siteJoin
                         from site in siteJoin.DefaultIfEmpty()
-                        join btr in _db.Set<MstBtrEntity>() on inv.LabelId equals btr.LabelId into btrJoin
+                        join btr in _db.Set<MstBtrEntity>().AsNoTracking() on inv.LabelId equals btr.LabelId into btrJoin
                         from btr in btrJoin.DefaultIfEmpty()
-                        join btrType in _db.Set<MstBtrTypeEntity>() on btr.BatteryTypeNo equals btrType.BatteryTypeNo into btrTypeJoin
+                        join btrType in _db.Set<MstBtrTypeEntity>().AsNoTracking() on btr.BatteryTypeNo equals btrType.BatteryTypeNo into btrTypeJoin
                         from btrType in btrTypeJoin.DefaultIfEmpty()
-                        join carMake in _db.Set<MstCarMakeEntity>() on btrType.CarMakeCode equals carMake.CarMakeCode into carMakeJoin
+                        join carMake in _db.Set<MstCarMakeEntity>().AsNoTracking() on btrType.CarMakeCode equals carMake.CarMakeCode into carMakeJoin
                         from carMake in carMakeJoin.DefaultIfEmpty()
-                        join car in _db.Set<MstCarEntity>() on btrType.CarCode equals car.CarCode into carJoin
+                        join car in _db.Set<MstCarEntity>().AsNoTracking() on btrType.CarCode equals car.CarCode into carJoin
                         from car in carJoin.DefaultIfEmpty()
-                        join btrMake in _db.Set<MstBtrMakeEntity>() on btrType.BatteryMakeCode equals btrMake.BatteryMakeCode into btrMakeJoin
+                        join btrMake in _db.Set<MstBtrMakeEntity>().AsNoTracking() on btrType.BatteryMakeCode equals btrMake.BatteryMakeCode into btrMakeJoin
                         from btrMake in btrMakeJoin.DefaultIfEmpty()
                         where inv.SiteCode == siteCode
                            && inv.FactoryCode == factCode

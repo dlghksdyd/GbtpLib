@@ -18,7 +18,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<WarehouseSlotLayoutDto>> GetLayoutAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
         {
-            var list = await _db.Set<InvWarehouseEntity>()
+            var list = await _db.Set<InvWarehouseEntity>().AsNoTracking()
                 .Where(x => x.SiteCode == siteCode && x.FactoryCode == factCode && x.WarehouseCode == whCode)
                 .OrderBy(x => x.Level).ThenBy(x => x.Row).ThenBy(x => x.Col)
                 .Select(x => new WarehouseSlotLayoutDto

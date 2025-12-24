@@ -21,10 +21,10 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public async Task<IReadOnlyList<LabelCreationInfoDto>> GetLabelCreationInfosAsync(CancellationToken ct = default(CancellationToken))
         {
-            var query = from type in _db.Set<MstBtrTypeEntity>()
-                        join carMake in _db.Set<MstCarMakeEntity>() on type.CarMakeCode equals carMake.CarMakeCode
-                        join car in _db.Set<MstCarEntity>() on type.CarCode equals car.CarCode
-                        join btrMake in _db.Set<MstBtrMakeEntity>() on type.BatteryMakeCode equals btrMake.BatteryMakeCode
+            var query = from type in _db.Set<MstBtrTypeEntity>().AsNoTracking()
+                        join carMake in _db.Set<MstCarMakeEntity>().AsNoTracking() on type.CarMakeCode equals carMake.CarMakeCode
+                        join car in _db.Set<MstCarEntity>().AsNoTracking() on type.CarCode equals car.CarCode
+                        join btrMake in _db.Set<MstBtrMakeEntity>().AsNoTracking() on type.BatteryMakeCode equals btrMake.BatteryMakeCode
                         where type.UseYn == "Y"
                         orderby type.ListOrder
                         select new LabelCreationInfoDto

@@ -22,7 +22,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var code = await _db.Set<MstCodeEntity>()
+            var code = await _db.Set<MstCodeEntity>().AsNoTracking()
                 .Where(x => x.CodeGroup == group && x.CodeName == codeName)
                 .Select(x => x.Code)
                 .FirstOrDefaultAsync(cancellationToken)
@@ -35,7 +35,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var names = await _db.Set<MstCodeEntity>()
+            var names = await _db.Set<MstCodeEntity>().AsNoTracking()
                 .Where(x => x.CodeGroup == group && x.UseYn == "Y")
                 .OrderBy(x => x.ListOrder)
                 .Select(x => x.CodeName)

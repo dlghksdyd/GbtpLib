@@ -21,7 +21,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         {
             ct.ThrowIfCancellationRequested();
 
-            var q = _db.Set<QltBtrInspEntity>()
+            var q = _db.Set<QltBtrInspEntity>().AsNoTracking()
                 .Where(x => x.LabelId == labelId && x.BatteryDiagStatus == "Y")
                 .OrderByDescending(x => x.InspectSeq)
                 .Select(x => x.InspectGrade);

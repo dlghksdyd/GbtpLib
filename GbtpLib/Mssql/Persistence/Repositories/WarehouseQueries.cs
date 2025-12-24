@@ -23,7 +23,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         {
             ct.ThrowIfCancellationRequested();
 
-            var list = await _db.Set<MstWarehouseEntity>()
+            var list = await _db.Set<MstWarehouseEntity>().AsNoTracking()
                 .Where(x => x.SiteCode == siteCode && x.FactoryCode == factCode && x.WarehouseType == whType && x.UseYn == "Y")
                 .OrderBy(x => x.WarehouseCode)
                 .Select(x => new WarehouseCodeNameDto { Code = x.WarehouseCode, Name = x.WarehouseName })

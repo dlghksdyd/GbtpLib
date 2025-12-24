@@ -18,7 +18,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public Task<MstBtrTypeEntity> GetByNoAsync(int batteryTypeNo, CancellationToken ct = default(CancellationToken))
         {
-            return _db.Set<MstBtrTypeEntity>().FirstOrDefaultAsync(x => x.BatteryTypeNo == batteryTypeNo, ct);
+            return _db.Set<MstBtrTypeEntity>().AsNoTracking().FirstOrDefaultAsync(x => x.BatteryTypeNo == batteryTypeNo, ct);
         }
     }
 }
