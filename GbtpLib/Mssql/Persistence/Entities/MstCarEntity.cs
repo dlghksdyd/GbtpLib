@@ -43,5 +43,8 @@ namespace GbtpLib.Mssql.Persistence.Entities
 
         [Column("MOD_DTM")]
         public DateTime? ModDateTime { get; set; }
+
+        // Navigation properties
+        public virtual MstCarMakeEntity CarMake { get; set; }
     }
 }

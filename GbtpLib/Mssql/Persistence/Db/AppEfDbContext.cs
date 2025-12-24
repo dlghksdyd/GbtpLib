@@ -46,6 +46,7 @@ namespace GbtpLib.Mssql.Persistence.Db
         public DbSet<MstPopEntity> Pops { get; set; }
         public DbSet<MstPopMachineEntity> PopMachines { get; set; }
         public DbSet<MstProcessEntity> Processes { get; set; }
+        public DbSet<MstSiteEntity> Sites { get; set; } // ADDED: Sites table mapping
 
         public DbSet<MstWarehouseEntity> Warehouses { get; set; }
         public DbSet<MstWarehouseCellEntity> WarehouseCells { get; set; }
@@ -89,23 +90,23 @@ namespace GbtpLib.Mssql.Persistence.Db
 
             // Relationships
             modelBuilder.Entity<MstCarEntity>()
-                .HasRequired<MstCarMakeEntity>(c => null)
+                .HasRequired(c => c.CarMake)
                 .WithMany()
                 .HasForeignKey(c => c.CarMakeCode)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<MstBtrTypeEntity>()
-                .HasOptional<MstCarMakeEntity>(t => null)
+                .HasOptional(t => t.CarMake)
                 .WithMany()
                 .HasForeignKey(t => t.CarMakeCode)
                 .WillCascadeOnDelete(false);
             modelBuilder.Entity<MstBtrTypeEntity>()
-                .HasOptional<MstCarEntity>(t => null)
+                .HasOptional(t => t.Car)
                 .WithMany()
-                .HasForeignKey(t => t.CarCode)
+                .HasForeignKey(t => new { t.CarMakeCode, t.CarCode })
                 .WillCascadeOnDelete(false);
             modelBuilder.Entity<MstBtrTypeEntity>()
-                .HasOptional<MstBtrMakeEntity>(t => null)
+                .HasOptional(t => t.BatteryMake)
                 .WithMany()
                 .HasForeignKey(t => t.BatteryMakeCode)
                 .WillCascadeOnDelete(false);

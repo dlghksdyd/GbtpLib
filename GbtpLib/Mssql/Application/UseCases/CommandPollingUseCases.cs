@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Mssql.Domain;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -50,8 +51,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var affected = await _repo.AcknowledgeAsync(cmdToWait, data1, ct).ConfigureAwait(false);
                 return affected > 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("CommandPollingUseCase.WaitForAndAcknowledgeAsync failed.", ex);
                 throw;
             }
         }

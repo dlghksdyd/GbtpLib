@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Mssql.Domain;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -43,8 +44,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                     .WaitForAndAcknowledgeAsync(EIfCmd.AA3, label, ct).ConfigureAwait(false);
                 return ok;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("OutcomeFlowUseCases.ProcessOutcomeToLoadingAsync failed.", ex);
                 throw;
             }
         }
@@ -63,8 +65,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                     .WaitForAndAcknowledgeAsync(EIfCmd.EE8, label, ct).ConfigureAwait(false);
                 return ok;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("OutcomeFlowUseCases.ProcessDefectToLoadingCompletedAsync failed.", ex);
                 throw;
             }
         }

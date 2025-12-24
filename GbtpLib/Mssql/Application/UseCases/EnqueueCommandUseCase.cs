@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -36,8 +37,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var affected = await _repo.EnqueueAsync(cmd, data1, data2, data3, data4, requestSystem, ct).ConfigureAwait(false);
                 return affected > 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("EnqueueCommandUseCase.EnqueueAsync failed.", ex);
                 throw;
             }
         }

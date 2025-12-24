@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Entities;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -34,8 +35,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
                 return affected > 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("CreateLabelUseCase.CreateAsync failed.", ex);
                 throw;
             }
         }
@@ -68,8 +70,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var affected = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
                 return affected > 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("DeleteLabelUseCase.DeleteAsync failed.", ex);
                 throw;
             }
         }

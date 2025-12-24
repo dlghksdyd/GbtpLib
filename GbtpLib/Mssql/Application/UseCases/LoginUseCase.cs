@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -36,8 +37,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var isAdmin = string.Equals(user.UserGroupCode, "ADMN", System.StringComparison.OrdinalIgnoreCase);
                 return (true, isAdmin);
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("LoginUseCase.LoginAsync failed.", ex);
                 throw;
             }
         }

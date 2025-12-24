@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -40,8 +41,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var affected = await _warehouseRepo.UpdateLabelAndGradeAsync(dto, ct).ConfigureAwait(false);
                 return affected > 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("UpdateWarehouseSlotUseCase.SetLabelAsync failed.", ex);
                 throw;
             }
         }
@@ -59,8 +61,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var affected = await _warehouseRepo.ClearLabelAsync(key, ct).ConfigureAwait(false);
                 return affected > 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("UpdateWarehouseSlotUseCase.ClearLabelAsync failed.", ex);
                 throw;
             }
         }

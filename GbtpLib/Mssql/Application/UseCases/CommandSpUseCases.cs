@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -54,8 +55,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
                 return result >= 0; // NonQuery returns affected rows (may be 0)
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("RequestTransferUseCase.RequestAcceptAsync failed.", ex);
                 throw;
             }
         }
@@ -80,8 +82,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
                 return result >= 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("RequestTransferUseCase.RequestRejectAsync failed.", ex);
                 throw;
             }
         }
@@ -109,8 +112,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
                 return result >= 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("RequestTransferUseCase.RequestDefectToLoadingAsync failed.", ex);
                 throw;
             }
         }

@@ -91,5 +91,10 @@ namespace GbtpLib.Mssql.Persistence.Entities
         public string ModId { get; set; }
         [Column("MOD_DTM")]
         public DateTime? ModDateTime { get; set; }
+
+        // Navigation properties
+        public virtual MstCarMakeEntity CarMake { get; set; }
+        public virtual MstCarEntity Car { get; set; }
+        public virtual MstBtrMakeEntity BatteryMake { get; set; }
     }
 }

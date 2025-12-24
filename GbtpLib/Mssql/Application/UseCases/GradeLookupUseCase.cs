@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -33,8 +34,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var grade = await _queries.GetLatestGradeAsync(labelId, ct).ConfigureAwait(false);
                 return grade;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("GradeLookupUseCase.GetLatestGradeAsync failed.", ex);
                 throw;
             }
         }

@@ -5,6 +5,7 @@ using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Mssql.Persistence.Entities;
 using GbtpLib.Mssql.Domain;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -61,8 +62,9 @@ namespace GbtpLib.Mssql.Application.UseCases
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("CreateLabelAndAssignSlotUseCase.ExecuteAsync failed.", ex);
                 throw;
             }
         }

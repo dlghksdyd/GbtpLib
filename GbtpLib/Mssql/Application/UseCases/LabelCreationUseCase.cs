@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Entities;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -31,12 +32,12 @@ namespace GbtpLib.Mssql.Application.UseCases
         /// </summary>
         public async Task<bool> CreateAsync(string labelId, int batteryTypeNo, string packModuleCode, string siteCode, string collectDate, string collectReason, CancellationToken ct = default(CancellationToken))
         {
-            // Fetch battery type meta to validate/extract fields
-            var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
-            if (type == null) return false;
-
             try
             {
+                // Fetch battery type meta to validate/extract fields
+                var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
+                if (type == null) return false;
+
                 var entity = new MstBtrEntity
                 {
                     LabelId = labelId,
@@ -57,8 +58,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
                 return affected > 0;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("LabelCreationUseCase.CreateAsync failed.", ex);
                 throw;
             }
         }

@@ -180,6 +180,7 @@
     <Compile Include="Mssql\Persistence\Repositories\WarehouseQueries.cs" />
     <Compile Include="Mssql\Persistence\UnitOfWork\EfUnitOfWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="packages.config" />
     <None Include="Reference\IF_CMD.csv" />
     <None Include="Reference\MsSqlBasic.cs" />
     <None Include="Reference\IncomeSystem\AllBatterySlotViewModel.cs" />
@@ -198,9 +199,6 @@
     <None Include="Reference\OutcomeSystem\OutcomeWaitBatteryViewModel.cs" />
     <None Include="Reference\OutcomeSystem\RepoMain.cs" />
     <Compile Include="User\UserContext.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

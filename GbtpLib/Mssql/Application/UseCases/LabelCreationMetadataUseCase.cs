@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -35,8 +36,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var list = await _queries.GetLabelCreationInfosAsync(ct).ConfigureAwait(false);
                 return list;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("LabelCreationMetadataUseCase.GetAsync failed.", ex);
                 throw;
             }
         }

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -53,8 +54,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 await _whRepo.ClearLabelByLabelIdAsync(labelId, siteCode, factoryCode, warehouseCode, ct).ConfigureAwait(false);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("DeleteLabelFlowUseCase.ExecuteAsync failed.", ex);
                 throw;
             }
         }

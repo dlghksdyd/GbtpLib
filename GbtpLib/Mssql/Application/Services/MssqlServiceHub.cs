@@ -9,6 +9,7 @@ using GbtpLib.Mssql.Persistence.Db;
 using GbtpLib.Mssql.Persistence.Repositories;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using System.Reflection; // for reflection on WPF Application/Dispatcher
+using GbtpLib.Logging; // add logging
 
 namespace GbtpLib.Mssql.Application.Services
 {
@@ -123,10 +124,18 @@ namespace GbtpLib.Mssql.Application.Services
         /// <param name="connectionString">ADO.NET 연결 문자열</param>
         public static void Initialize(string connectionString)
         {
-            if (DbConnectionSettings.IsInitialized)
-                throw new InvalidOperationException("MssqlServiceHub.Initialize can only be called once per process.");
+            try
+            {
+                if (DbConnectionSettings.IsInitialized)
+                    throw new InvalidOperationException("MssqlServiceHub.Initialize can only be called once per process.");
 
-            DbConnectionSettings.Initialize(connectionString);
+                DbConnectionSettings.Initialize(connectionString);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("MssqlServiceHub.Initialize failed.", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -230,42 +239,50 @@ namespace GbtpLib.Mssql.Application.Services
                 _db = db ?? throw new ArgumentNullException(nameof(db));
                 _uow = uow ?? throw new ArgumentNullException(nameof(uow));
 
-                // repos/queries
-                _users = new MstUserInfoRepository(_db);
-                _warehouses = new InvWarehouseRepository(_db);
-                _cmdRepo = new ItfCmdDataRepository(_db);
-                _cmdQueries = new ItfCmdDataQueries(_db);
-                _storedProc = new StoredProcedureExecutor(_db);
-                _codes = new MstCodeRepository(_db);
-                _slots = new SlotQueryRepository(_db);
-                _batteries = new MstBtrRepository(_db);
-                _batteryTypes = new MstBtrTypeRepository(_db);
-                _metadata = new MetadataQueries(_db);
-                _labelCreation = new LabelCreationQueries(_db);
-                _inspection = new QltBtrInspQueries(_db);
-                _defects = new DefectBatteryQueries(_db);
-                _warehouseQueries = new WarehouseQueries(_db);
-                _warehouseLayout = new WarehouseLayoutQueries(_db);
+                try
+                {
+                    // repos/queries
+                    _users = new MstUserInfoRepository(_db);
+                    _warehouses = new InvWarehouseRepository(_db);
+                    _cmdRepo = new ItfCmdDataRepository(_db);
+                    _cmdQueries = new ItfCmdDataQueries(_db);
+                    _storedProc = new StoredProcedureExecutor(_db);
+                    _codes = new MstCodeRepository(_db);
+                    _slots = new SlotQueryRepository(_db);
+                    _batteries = new MstBtrRepository(_db);
+                    _batteryTypes = new MstBtrTypeRepository(_db);
+                    _metadata = new MetadataQueries(_db);
+                    _labelCreation = new LabelCreationQueries(_db);
+                    _inspection = new QltBtrInspQueries(_db);
+                    _defects = new DefectBatteryQueries(_db);
+                    _warehouseQueries = new WarehouseQueries(_db);
+                    _warehouseLayout = new WarehouseLayoutQueries(_db);
 
-                // usecases
-                Login = new LoginUseCase(_uow, _users);
-                GetCode = new GetCodeUseCase(_uow, _codes);
-                MetadataUseCases = new MetadataUseCases(_uow, _metadata);
-                InitializeSlots = new InitializeSlotsUseCase(_uow, _slots);
-                UpdateWarehouseSlot = new UpdateWarehouseSlotUseCase(_uow, _warehouses);
-                EnqueueCommand = new EnqueueCommandUseCase(_uow, _cmdRepo);
-                AcknowledgeCommand = new AcknowledgeCommandUseCase(_uow, _cmdRepo);
-                RequestTransfer = new RequestTransferUseCase(_uow, _storedProc);
-                CommandPolling = new CommandPollingUseCase(_uow, _cmdQueries, _cmdRepo);
-                CreateLabel = new CreateLabelUseCase(_uow, _batteries);
-                DeleteLabelFlow = new DeleteLabelFlowUseCase(_uow, _batteries, _warehouses);
-                LabelCreationMetadata = new LabelCreationMetadataUseCase(_uow, _labelCreation);
-                LabelCreationUseCase = new LabelCreationUseCase(_uow, _batteryTypes, _batteries);
-                GradeLookup = new GradeLookupUseCase(_uow, _inspection);
-                CreateLabelAndAssignSlot = new CreateLabelAndAssignSlotUseCase(_uow, _batteries, _warehouses);
-                OutcomeFlow = new OutcomeFlowUseCases(_uow, _warehouses, _storedProc, _cmdRepo, _cmdQueries);
-                IncomeFlow = new IncomeFlowUseCases(_uow, _storedProc, _cmdRepo, _cmdQueries, _warehouses);
-                FilterMetadata = new FilterMetadataUseCase(_uow, _metadata);
+                    // usecases
+                    Login = new LoginUseCase(_uow, _users);
+                    GetCode = new GetCodeUseCase(_uow, _codes);
+                    MetadataUseCases = new MetadataUseCases(_uow, _metadata);
+                    InitializeSlots = new InitializeSlotsUseCase(_uow, _slots);
+                    UpdateWarehouseSlot = new UpdateWarehouseSlotUseCase(_uow, _warehouses);
+                    EnqueueCommand = new EnqueueCommandUseCase(_uow, _cmdRepo);
+                    AcknowledgeCommand = new AcknowledgeCommandUseCase(_uow, _cmdRepo);
+                    RequestTransfer = new RequestTransferUseCase(_uow, _storedProc);
+                    CommandPolling = new CommandPollingUseCase(_uow, _cmdQueries, _cmdRepo);
+                    CreateLabel = new CreateLabelUseCase(_uow, _batteries);
+                    DeleteLabelFlow = new DeleteLabelFlowUseCase(_uow, _batteries, _warehouses);
+                    LabelCreationMetadata = new LabelCreationMetadataUseCase(_uow, _labelCreation);
+                    LabelCreationUseCase = new LabelCreationUseCase(_uow, _batteryTypes, _batteries);
+                    GradeLookup = new GradeLookupUseCase(_uow, _inspection);
+                    CreateLabelAndAssignSlot = new CreateLabelAndAssignSlotUseCase(_uow, _batteries, _warehouses);
+                    OutcomeFlow = new OutcomeFlowUseCases(_uow, _warehouses, _storedProc, _cmdRepo, _cmdQueries);
+                    IncomeFlow = new IncomeFlowUseCases(_uow, _storedProc, _cmdRepo, _cmdQueries, _warehouses);
+                    FilterMetadata = new FilterMetadataUseCase(_uow, _metadata);
+                }
+                catch (Exception ex)
+                {
+                    AppLog.Error("MssqlServiceHub.Services initialization failed.", ex);
+                    throw;
+                }
             }
 
             /// <summary>
@@ -320,10 +337,18 @@ namespace GbtpLib.Mssql.Application.Services
         /// </summary>
         private static Services CreateServices()
         {
-            var factory = new AppDbContextFactory(DbConnectionSettings.ConnectionString);
-            var db = factory.Create();
-            var uow = new GbtpLib.Mssql.Persistence.UnitOfWork.EfUnitOfWork(db);
-            return new Services(db, uow);
+            try
+            {
+                var factory = new AppDbContextFactory(DbConnectionSettings.ConnectionString);
+                var db = factory.Create();
+                var uow = new GbtpLib.Mssql.Persistence.UnitOfWork.EfUnitOfWork(db);
+                return new Services(db, uow);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("MssqlServiceHub.CreateServices failed.", ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -347,39 +372,57 @@ namespace GbtpLib.Mssql.Application.Services
 
             Func<T> execute = () =>
             {
-                using (var services = CreateServices())
+                try
                 {
-                    if (readOnly)
+                    using (var services = CreateServices())
                     {
+                        if (readOnly)
+                        {
+                            try
+                            {
+                                return action(services);
+                            }
+                            catch (Exception ex)
+                            {
+                                try { AppLog.Error("UsingReadOnlyServices failed.", ex); } catch { }
+                                return default(T);
+                            }
+                        }
+
                         try
                         {
-                            return action(services);
+                            services.Begin();
+                            var result = action(services);
+                            services.Commit();
+                            return result;
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            try { services.Rollback(); } catch { /* swallow rollback errors */ }
+                            try { AppLog.Error("UsingServices failed.", ex); } catch { }
                             return default(T);
                         }
                     }
-
-                    try
-                    {
-                        services.Begin();
-                        var result = action(services);
-                        services.Commit();
-                        return result;
-                    }
-                    catch
-                    {
-                        try { services.Rollback(); } catch { /* swallow rollback errors */ }
-                        return default(T);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    try { AppLog.Error("UsingServicesCore service creation failed.", ex); } catch { }
+                    return default(T);
                 }
             };
 
             var ctx = SynchronizationContext.Current;
             if (IsUiContext(ctx))
             {
-                return Task.Run(execute).GetAwaiter().GetResult();
+                try
+                {
+                    return Task.Run(execute).GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    try { AppLog.Error("UsingServicesCore Task.Run failed.", ex); } catch { }
+                    return default(T);
+                }
             }
 
             return execute();
@@ -391,34 +434,43 @@ namespace GbtpLib.Mssql.Application.Services
         private static async Task<T> UsingServicesAsyncCore<T>(Func<Services, Task<T>> action, bool readOnly)
         {
             if (action == null) throw new ArgumentNullException(nameof(action));
-            using (var services = CreateServices())
+            try
             {
-                if (readOnly)
+                using (var services = CreateServices())
                 {
+                    if (readOnly)
+                    {
+                        try
+                        {
+                            var result = await action(services).ConfigureAwait(false);
+                            return result;
+                        }
+                        catch (Exception ex)
+                        {
+                            try { AppLog.Error("UsingReadOnlyServicesAsync failed.", ex); } catch { }
+                            return default(T);
+                        }
+                    }
+
                     try
                     {
+                        await services.BeginAsync().ConfigureAwait(false);
                         var result = await action(services).ConfigureAwait(false);
+                        await services.CommitAsync().ConfigureAwait(false);
                         return result;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // read-only에서 예외가 발생하면 기본값 반환
+                        try { await services.RollbackAsync().ConfigureAwait(false); } catch { /* swallow rollback errors */ }
+                        try { AppLog.Error("UsingServicesAsync failed.", ex); } catch { }
                         return default(T);
                     }
                 }
-
-                try
-                {
-                    await services.BeginAsync().ConfigureAwait(false);
-                    var result = await action(services).ConfigureAwait(false);
-                    await services.CommitAsync().ConfigureAwait(false);
-                    return result;
-                }
-                catch
-                {
-                    try { await services.RollbackAsync().ConfigureAwait(false); } catch { /* swallow rollback errors */ }
-                    return default(T);
-                }
+            }
+            catch (Exception ex)
+            {
+                try { AppLog.Error("UsingServicesAsyncCore service creation failed.", ex); } catch { }
+                return default(T);
             }
         }
     }

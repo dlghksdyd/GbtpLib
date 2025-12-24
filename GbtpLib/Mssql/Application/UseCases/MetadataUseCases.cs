@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -35,8 +36,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var list = await _queries.GetSitesAsync(ct).ConfigureAwait(false);
                 return list;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("MetadataUseCases.GetSitesAsync failed.", ex);
                 throw;
             }
         }
@@ -51,8 +53,9 @@ namespace GbtpLib.Mssql.Application.UseCases
                 var list = await _queries.GetFactoriesAsync(siteCode, ct).ConfigureAwait(false);
                 return list;
             }
-            catch
+            catch (Exception ex)
             {
+                AppLog.Error("MetadataUseCases.GetFactoriesAsync failed.", ex);
                 throw;
             }
         }
