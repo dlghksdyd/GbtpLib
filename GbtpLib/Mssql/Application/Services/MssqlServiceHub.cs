@@ -34,6 +34,17 @@ namespace GbtpLib.Mssql.Application.Services
            return 1;
        });
 
+       // UseCase 메서드 호출 예시 (동기 래핑)
+       bool created = MssqlServiceHub.UsingServices<bool>(s => {
+           // 동기 컨텍스트이므로 비동기 UseCase는 결과를 동기적으로 기다립니다.
+           var entity = new MstBtrEntity { UseYn = "Y" }; // 기타 필드 설정
+           return s.CreateLabel.CreateAsync(entity).GetAwaiter().GetResult();
+       });
+
+       bool acknowledged = MssqlServiceHub.UsingServices<bool>(s => {
+           return s.AcknowledgeCommand.AcknowledgeAsync(EIfCmd.AA3, "LABEL123").GetAwaiter().GetResult();
+       });
+
     3) 동기 읽기 전용 작업 (트랜잭션 시작하지 않음)
        var dto = MssqlServiceHub.UsingReadOnlyServices(s => {
            return s.MetadataUseCases; // 또는 repositories/queries를 활용하는 UseCase 결과 사용
@@ -45,12 +56,23 @@ namespace GbtpLib.Mssql.Application.Services
            return "A";
        });
 
+       // UseCase 메서드 호출 예시 (동기 래핑)
+       string latest = MssqlServiceHub.UsingReadOnlyServices<string>(s => {
+           return s.GradeLookup.GetLatestGradeAsync("LABEL123").GetAwaiter().GetResult();
+       });
+
+       IReadOnlyList<string> carMakes = MssqlServiceHub.UsingReadOnlyServices<IReadOnlyList<string>>(s => {
+           return s.FilterMetadata.GetCarMakeNamesAsync().GetAwaiter().GetResult();
+       });
+
     4) 비동기 읽기/쓰기 작업 (트랜잭션 경계 포함)
        // 주의: UsingServicesAsync도 트랜잭션을 자동으로 Begin/Commit/Rollback 합니다.
        //       액션(Func) 내부에서 트랜잭션 제어를 호출하지 마세요.
        var ok = await MssqlServiceHub.UsingServicesAsync(async s => {
            // UseCase 예: 라벨 생성 후 슬롯 할당
-           return await s.CreateLabelAndAssignSlot.ExecuteAsync(label, slot, ct);
+           var label = new MstBtrEntity { UseYn = "Y" }; // 기타 필드 지정
+           var slot = new WarehouseSlotUpdateDto(); // 대상 슬롯 파라미터 지정
+           return await s.CreateLabelAndAssignSlot.ExecuteAsync(label, slot);
        });
 
        // Generic 반환 타입 예시
@@ -60,20 +82,34 @@ namespace GbtpLib.Mssql.Application.Services
            return 1;
        });
 
+       // UseCase 메서드 호출 예시
+       bool enqueued = await MssqlServiceHub.UsingServicesAsync(async s => {
+           return await s.EnqueueCommand.EnqueueAsync(EIfCmd.AA3, "LABEL123", null, null, null, "SYS");
+       });
+
+       bool transferRequested = await MssqlServiceHub.UsingServicesAsync(async s => {
+           return await s.RequestTransfer.RequestAcceptAsync("LABEL123", 1, 2, 3, "SYS");
+       });
+
     5) 비동기 읽기 전용 작업 (트랜잭션 시작하지 않음)
        var list = await MssqlServiceHub.UsingReadOnlyServicesAsync(async s => {
-           return await s.FilterMetadata.GetCarMakeNamesAsync(ct);
+           return await s.FilterMetadata.GetCarMakeNamesAsync();
        });
 
        // Generic 반환 타입 예시
        IReadOnlyList<string> names = await MssqlServiceHub.UsingReadOnlyServicesAsync<IReadOnlyList<string>>(async s => {
-           return await s.FilterMetadata.GetCarMakeNamesAsync(ct);
+           return await s.FilterMetadata.GetCarMakeNamesAsync();
+       });
+
+       // UseCase 메서드 호출 예시
+       string grade = await MssqlServiceHub.UsingReadOnlyServicesAsync(async s => {
+           return await s.GradeLookup.GetLatestGradeAsync("LABEL123");
        });
 
     비고
     - WPF UI 컨텍스트에서 동기 메서드 호출 시, 내부적으로 Task.Run으로 백그라운드에서 실행해 UI 블로킹을 회피합니다.
     - UsingServices/UsingServicesAsync는 예외 발생 시 안전하게 롤백하고 기본값(default(T))을 반환합니다.
-    - Services 인스턴스는 using 범위 종료 시 자동 Dispose 되어 DbContext/UoW가 정리됩니다.
+    - Services 인스턴스는 using 블록 종료 시 자동 Dispose 되어 DbContext/UoW가 정리됩니다.
     */
     // 단일 진입점: Db/UoW + 모든 Repo/Query/UseCase를 손쉽게 사용하도록 제공
     public static class MssqlServiceHub
