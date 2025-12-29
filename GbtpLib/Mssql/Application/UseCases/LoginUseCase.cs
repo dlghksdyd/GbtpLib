@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
 
@@ -16,12 +15,10 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class LoginUseCase
     {
-        private readonly IUnitOfWork _uow;
         private readonly IMstUserInfoRepository _repo;
 
-        public LoginUseCase(IUnitOfWork uow, IMstUserInfoRepository repo)
+        public LoginUseCase(IMstUserInfoRepository repo)
         {
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 

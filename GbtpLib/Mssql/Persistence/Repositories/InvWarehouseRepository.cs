@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Abstractions;
 using GbtpLib.Mssql.Persistence.Entities;
+using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    public class InvWarehouseRepository : Abstractions.IInvWarehouseRepository
+    public class InvWarehouseRepository : IInvWarehouseRepository
     {
         private readonly IAppDbContext _db;
 

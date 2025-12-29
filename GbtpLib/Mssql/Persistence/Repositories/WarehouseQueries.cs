@@ -11,7 +11,8 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    public class WarehouseQueries : IWarehouseQueries
+    // Single queries class for warehouse metadata and layout
+    public class WarehouseQueries : IWarehouseQueries, IWarehouseLayoutQueries
     {
         private readonly IAppDbContext _db;
         public WarehouseQueries(IAppDbContext db)
@@ -32,5 +33,26 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
             return list;
         }
+
+        public async Task<IReadOnlyList<WarehouseSlotLayoutDto>> GetLayoutAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var list = await _db.Set<InvWarehouseEntity>().AsNoTracking()
+                .Where(x => x.SiteCode == siteCode && x.FactoryCode == factCode && x.WarehouseCode == whCode)
+                .OrderBy(x => x.Level).ThenBy(x => x.Row).ThenBy(x => x.Col)
+                .Select(x => new WarehouseSlotLayoutDto
+                {
+                    Row = SafeParseInt(x.Row),
+                    Col = SafeParseInt(x.Col),
+                    Lvl = SafeParseInt(x.Level),
+                    LabelId = x.LabelId,
+                })
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            return list;
+        }
+
+        private static int SafeParseInt(string s) { int v; return int.TryParse(s, out v) ? v : 0; }
     }
 }

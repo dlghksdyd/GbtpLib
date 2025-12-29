@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
@@ -17,12 +16,10 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class InitializeSlotsUseCase
     {
-        private readonly IUnitOfWork _uow;
         private readonly ISlotQueryRepository _repo;
 
-        public InitializeSlotsUseCase(IUnitOfWork uow, ISlotQueryRepository repo)
+        public InitializeSlotsUseCase(ISlotQueryRepository repo)
         {
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 

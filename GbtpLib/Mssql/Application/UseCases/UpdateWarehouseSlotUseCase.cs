@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
@@ -19,12 +18,10 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class UpdateWarehouseSlotUseCase
     {
-        private readonly IUnitOfWork _uow;
         private readonly IInvWarehouseRepository _warehouseRepo;
 
-        public UpdateWarehouseSlotUseCase(IUnitOfWork uow, IInvWarehouseRepository warehouseRepo)
+        public UpdateWarehouseSlotUseCase(IInvWarehouseRepository warehouseRepo)
         {
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _warehouseRepo = warehouseRepo ?? throw new ArgumentNullException(nameof(warehouseRepo));
         }
 

@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
 
@@ -16,12 +15,10 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class GetCodeUseCase
     {
-        private readonly IUnitOfWork _uow;
         private readonly IMstCodeRepository _repo;
 
-        public GetCodeUseCase(IUnitOfWork uow, IMstCodeRepository repo)
+        public GetCodeUseCase(IMstCodeRepository repo)
         {
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 

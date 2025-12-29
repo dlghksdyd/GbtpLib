@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
 
@@ -15,12 +14,10 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class GradeLookupUseCase
     {
-        private readonly IUnitOfWork _uow;
         private readonly IQltBtrInspQueries _queries;
 
-        public GradeLookupUseCase(IUnitOfWork uow, IQltBtrInspQueries queries)
+        public GradeLookupUseCase(IQltBtrInspQueries queries)
         {
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _queries = queries ?? throw new ArgumentNullException(nameof(queries));
         }
 

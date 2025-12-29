@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Logging;
@@ -20,14 +19,13 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class OutcomeFlowUseCases
     {
-        private readonly IUnitOfWork _uow;
         private readonly IInvWarehouseRepository _warehouseRepo;
         private readonly IStoredProcedureExecutor _sp;
         private readonly IItfCmdDataRepository _repo;
         private readonly IItfCmdDataQueries _queries;
-        public OutcomeFlowUseCases(IUnitOfWork uow, IInvWarehouseRepository warehouseRepo, IStoredProcedureExecutor sp, IItfCmdDataRepository repo, IItfCmdDataQueries queries)
+        public OutcomeFlowUseCases(IInvWarehouseRepository warehouseRepo, IStoredProcedureExecutor sp, IItfCmdDataRepository repo, IItfCmdDataQueries queries)
         {
-            _uow = uow; _warehouseRepo = warehouseRepo; _sp = sp; _repo = repo; _queries = queries;
+            _warehouseRepo = warehouseRepo; _sp = sp; _repo = repo; _queries = queries;
         }
 
         /// <summary>
@@ -40,7 +38,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         {
             try
             {
-                var ok = await new CommandPollingUseCase(_uow, _queries, _repo)
+                var ok = await new InterfaceCommandUseCases(_repo, _queries, _sp)
                     .WaitForAndAcknowledgeAsync(EIfCmd.AA3, label, ct).ConfigureAwait(false);
                 return ok;
             }
@@ -61,7 +59,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         {
             try
             {
-                var ok = await new CommandPollingUseCase(_uow, _queries, _repo)
+                var ok = await new InterfaceCommandUseCases(_repo, _queries, _sp)
                     .WaitForAndAcknowledgeAsync(EIfCmd.EE8, label, ct).ConfigureAwait(false);
                 return ok;
             }

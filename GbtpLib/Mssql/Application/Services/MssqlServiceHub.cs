@@ -39,11 +39,11 @@ namespace GbtpLib.Mssql.Application.Services
        bool created = MssqlServiceHub.UsingServices<bool>(s => {
            // 동기 컨텍스트이므로 비동기 UseCase는 결과를 동기적으로 기다립니다.
            var entity = new MstBtrEntity { UseYn = "Y" }; // 기타 필드 설정
-           return s.CreateLabel.CreateAsync(entity).GetAwaiter().GetResult();
+           return s.Labels.CreateLabelAsync(entity).GetAwaiter().GetResult();
        });
 
        bool acknowledged = MssqlServiceHub.UsingServices<bool>(s => {
-           return s.AcknowledgeCommand.AcknowledgeAsync(EIfCmd.AA3, "LABEL123").GetAwaiter().GetResult();
+           return s.InterfaceCommands.AcknowledgeAsync(EIfCmd.AA3, "LABEL123").GetAwaiter().GetResult();
        });
 
     3) 동기 읽기 전용 작업 (트랜잭션 시작하지 않음)
@@ -73,7 +73,7 @@ namespace GbtpLib.Mssql.Application.Services
            // UseCase 예: 라벨 생성 후 슬롯 할당
            var label = new MstBtrEntity { UseYn = "Y" }; // 기타 필드 지정
            var slot = new WarehouseSlotUpdateDto(); // 대상 슬롯 파라미터 지정
-           return await s.CreateLabelAndAssignSlot.ExecuteAsync(label, slot);
+           return await s.Labels.CreateLabelAndAssignSlotAsync(label, slot);
        });
 
        // Generic 반환 타입 예시
@@ -85,11 +85,11 @@ namespace GbtpLib.Mssql.Application.Services
 
        // UseCase 메서드 호출 예시
        bool enqueued = await MssqlServiceHub.UsingServicesAsync(async s => {
-           return await s.EnqueueCommand.EnqueueAsync(EIfCmd.AA3, "LABEL123", null, null, null, "SYS");
+           return await s.InterfaceCommands.EnqueueAsync(EIfCmd.AA3, "LABEL123", null, null, null, "SYS");
        });
 
        bool transferRequested = await MssqlServiceHub.UsingServicesAsync(async s => {
-           return await s.RequestTransfer.RequestAcceptAsync("LABEL123", 1, 2, 3, "SYS");
+           return await s.InterfaceCommands.RequestAcceptAsync("LABEL123", 1, 2, 3, "SYS");
        });
 
     5) 비동기 읽기 전용 작업 (트랜잭션 시작하지 않음)
@@ -119,7 +119,7 @@ namespace GbtpLib.Mssql.Application.Services
         // PUBLIC METHODS
         // =====================
         /// <summary>
-        /// 라이브러리에서 사용할 DB 연결 문자열을 1회 설정합니다. 중복 호출 시 InvalidOperationException을 발생시킵니다.
+        /// 라이브러리에서 사용할 DB 연결 문자열을 1회 설정합니다. 중복 호출 시 InvalidOperationException을 발생시킺니다.
         /// </summary>
         /// <param name="connectionString">ADO.NET 연결 문자열</param>
         public static void Initialize(string connectionString)
@@ -197,42 +197,51 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly IUnitOfWork _uow;
             private bool _disposed;
 
-            // 내부 관리용 Repositories / Queries
-            private readonly IMstUserInfoRepository _users;
-            private readonly IInvWarehouseRepository _warehouses;
-            private readonly IItfCmdDataRepository _cmdRepo;
-            private readonly IItfCmdDataQueries _cmdQueries;
-            private readonly IStoredProcedureExecutor _storedProc;
-            private readonly IMstCodeRepository _codes;
-            private readonly ISlotQueryRepository _slots;
-            private readonly IMstBtrRepository _batteries;
-            private readonly IMstBtrTypeRepository _batteryTypes;
-            private readonly IMetadataQueries _metadata;
-            private readonly ILabelCreationQueries _labelCreation;
-            private readonly IQltBtrInspQueries _inspection;
-            private readonly IDefectBatteryQueries _defects;
-            private readonly IWarehouseQueries _warehouseQueries;
-            private readonly IWarehouseLayoutQueries _warehouseLayout;
+            // 내부 관리용 Repositories / Queries (Lazy 초기화)
+            private readonly Lazy<IMstUserInfoRepository> _users;
+            private readonly Lazy<IInvWarehouseRepository> _warehouses;
+            private readonly Lazy<IItfCmdDataRepository> _cmdRepo;
+            private readonly Lazy<IItfCmdDataQueries> _cmdQueries;
+            private readonly Lazy<IStoredProcedureExecutor> _storedProc;
+            private readonly Lazy<IMstCodeRepository> _codes;
+            private readonly Lazy<ISlotQueryRepository> _slots;
+            private readonly Lazy<IMstBtrRepository> _batteries;
+            private readonly Lazy<IMstBtrTypeRepository> _batteryTypes;
+            private readonly Lazy<IMetadataQueries> _metadata;
+            private readonly Lazy<ILabelCreationQueries> _labelCreation;
+            private readonly Lazy<IQltBtrInspQueries> _inspection;
+            private readonly Lazy<IDefectBatteryQueries> _defects;
+            private readonly Lazy<IWarehouseQueries> _warehouseQueries;
 
-            // 공개 UseCases
-            public LoginUseCase Login { get; }
-            public GetCodeUseCase GetCode { get; }
-            public MetadataUseCases MetadataUseCases { get; }
-            public InitializeSlotsUseCase InitializeSlots { get; }
-            public UpdateWarehouseSlotUseCase UpdateWarehouseSlot { get; }
-            public EnqueueCommandUseCase EnqueueCommand { get; }
-            public AcknowledgeCommandUseCase AcknowledgeCommand { get; }
-            public RequestTransferUseCase RequestTransfer { get; }
-            public CommandPollingUseCase CommandPolling { get; }
-            public CreateLabelUseCase CreateLabel { get; }
-            public DeleteLabelFlowUseCase DeleteLabelFlow { get; }
-            public LabelCreationMetadataUseCase LabelCreationMetadata { get; }
-            public LabelCreationUseCase LabelCreationUseCase { get; }
-            public GradeLookupUseCase GradeLookup { get; }
-            public CreateLabelAndAssignSlotUseCase CreateLabelAndAssignSlot { get; }
-            public OutcomeFlowUseCases OutcomeFlow { get; }
-            public IncomeFlowUseCases IncomeFlow { get; }
-            public FilterMetadataUseCase FilterMetadata { get; }
+            // 공개 UseCases (Lazy 초기화)
+            private readonly Lazy<LoginUseCase> _login;
+            private readonly Lazy<GetCodeUseCase> _getCode;
+            private readonly Lazy<MetadataUseCases> _metadataUseCases;
+            private readonly Lazy<InitializeSlotsUseCase> _initializeSlots;
+            private readonly Lazy<UpdateWarehouseSlotUseCase> _updateWarehouseSlot;
+            private readonly Lazy<WarehouseSlotUseCases> _warehouseSlotUseCases;
+            private readonly Lazy<GradeLookupUseCase> _gradeLookup;
+            private readonly Lazy<OutcomeFlowUseCases> _outcomeFlow;
+            private readonly Lazy<IncomeFlowUseCases> _incomeFlow;
+            private readonly Lazy<FilterMetadataUseCase> _filterMetadata;
+            private readonly Lazy<InterfaceCommandUseCases> _interfaceCommandUseCases;
+            private readonly Lazy<LabelManagementUseCases> _labelManagementUseCases;
+
+            // 공개 접근자 (Lazy.Value 반환)
+            public LoginUseCase Login { get { return _login.Value; } }
+            public GetCodeUseCase GetCode { get { return _getCode.Value; } }
+            public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
+            // Back-compat individual slot use cases
+            public InitializeSlotsUseCase InitializeSlots { get { return _initializeSlots.Value; } }
+            public UpdateWarehouseSlotUseCase UpdateWarehouseSlot { get { return _updateWarehouseSlot.Value; } }
+            // New consolidated slot use cases
+            public WarehouseSlotUseCases Slots { get { return _warehouseSlotUseCases.Value; } }
+            public GradeLookupUseCase GradeLookup { get { return _gradeLookup.Value; } }
+            public OutcomeFlowUseCases OutcomeFlow { get { return _outcomeFlow.Value; } }
+            public IncomeFlowUseCases IncomeFlow { get { return _incomeFlow.Value; } }
+            public FilterMetadataUseCase FilterMetadata { get { return _filterMetadata.Value; } }
+            public InterfaceCommandUseCases InterfaceCommands { get { return _interfaceCommandUseCases.Value; } }
+            public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
 
             internal Services(IAppDbContext db, IUnitOfWork uow)
             {
@@ -241,42 +250,35 @@ namespace GbtpLib.Mssql.Application.Services
 
                 try
                 {
-                    // repos/queries
-                    _users = new MstUserInfoRepository(_db);
-                    _warehouses = new InvWarehouseRepository(_db);
-                    _cmdRepo = new ItfCmdDataRepository(_db);
-                    _cmdQueries = new ItfCmdDataQueries(_db);
-                    _storedProc = new StoredProcedureExecutor(_db);
-                    _codes = new MstCodeRepository(_db);
-                    _slots = new SlotQueryRepository(_db);
-                    _batteries = new MstBtrRepository(_db);
-                    _batteryTypes = new MstBtrTypeRepository(_db);
-                    _metadata = new MetadataQueries(_db);
-                    _labelCreation = new LabelCreationQueries(_db);
-                    _inspection = new QltBtrInspQueries(_db);
-                    _defects = new DefectBatteryQueries(_db);
-                    _warehouseQueries = new WarehouseQueries(_db);
-                    _warehouseLayout = new WarehouseLayoutQueries(_db);
+                    // repos/queries (지연 생성)
+                    _users = new Lazy<IMstUserInfoRepository>(() => new MstUserInfoRepository(_db), LazyThreadSafetyMode.None);
+                    _warehouses = new Lazy<IInvWarehouseRepository>(() => new InvWarehouseRepository(_db), LazyThreadSafetyMode.None);
+                    _cmdRepo = new Lazy<IItfCmdDataRepository>(() => new ItfCmdDataRepository(_db), LazyThreadSafetyMode.None);
+                    _cmdQueries = new Lazy<IItfCmdDataQueries>(() => new ItfCmdDataQueries(_db), LazyThreadSafetyMode.None);
+                    _storedProc = new Lazy<IStoredProcedureExecutor>(() => new StoredProcedureExecutor(_db), LazyThreadSafetyMode.None);
+                    _codes = new Lazy<IMstCodeRepository>(() => new MstCodeRepository(_db), LazyThreadSafetyMode.None);
+                    _slots = new Lazy<ISlotQueryRepository>(() => new SlotQueryRepository(_db), LazyThreadSafetyMode.None);
+                    _batteries = new Lazy<IMstBtrRepository>(() => new MstBtrRepository(_db), LazyThreadSafetyMode.None);
+                    _batteryTypes = new Lazy<IMstBtrTypeRepository>(() => new MstBtrTypeRepository(_db), LazyThreadSafetyMode.None);
+                    _metadata = new Lazy<IMetadataQueries>(() => new MetadataQueries(_db), LazyThreadSafetyMode.None);
+                    _labelCreation = new Lazy<ILabelCreationQueries>(() => new LabelCreationQueries(_db), LazyThreadSafetyMode.None);
+                    _inspection = new Lazy<IQltBtrInspQueries>(() => new QltBtrInspQueries(_db), LazyThreadSafetyMode.None);
+                    _defects = new Lazy<IDefectBatteryQueries>(() => new DefectBatteryQueries(_db), LazyThreadSafetyMode.None);
+                    _warehouseQueries = new Lazy<IWarehouseQueries>(() => new WarehouseQueries(_db), LazyThreadSafetyMode.None);
 
-                    // usecases
-                    Login = new LoginUseCase(_uow, _users);
-                    GetCode = new GetCodeUseCase(_uow, _codes);
-                    MetadataUseCases = new MetadataUseCases(_uow, _metadata);
-                    InitializeSlots = new InitializeSlotsUseCase(_uow, _slots);
-                    UpdateWarehouseSlot = new UpdateWarehouseSlotUseCase(_uow, _warehouses);
-                    EnqueueCommand = new EnqueueCommandUseCase(_uow, _cmdRepo);
-                    AcknowledgeCommand = new AcknowledgeCommandUseCase(_uow, _cmdRepo);
-                    RequestTransfer = new RequestTransferUseCase(_uow, _storedProc);
-                    CommandPolling = new CommandPollingUseCase(_uow, _cmdQueries, _cmdRepo);
-                    CreateLabel = new CreateLabelUseCase(_uow, _batteries);
-                    DeleteLabelFlow = new DeleteLabelFlowUseCase(_uow, _batteries, _warehouses);
-                    LabelCreationMetadata = new LabelCreationMetadataUseCase(_uow, _labelCreation);
-                    LabelCreationUseCase = new LabelCreationUseCase(_uow, _batteryTypes, _batteries);
-                    GradeLookup = new GradeLookupUseCase(_uow, _inspection);
-                    CreateLabelAndAssignSlot = new CreateLabelAndAssignSlotUseCase(_uow, _batteries, _warehouses);
-                    OutcomeFlow = new OutcomeFlowUseCases(_uow, _warehouses, _storedProc, _cmdRepo, _cmdQueries);
-                    IncomeFlow = new IncomeFlowUseCases(_uow, _storedProc, _cmdRepo, _cmdQueries, _warehouses);
-                    FilterMetadata = new FilterMetadataUseCase(_uow, _metadata);
+                    // usecases (지연 생성)
+                    _login = new Lazy<LoginUseCase>(() => new LoginUseCase(_users.Value), LazyThreadSafetyMode.None);
+                    _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);
+                    _metadataUseCases = new Lazy<MetadataUseCases>(() => new MetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
+                    _initializeSlots = new Lazy<InitializeSlotsUseCase>(() => new InitializeSlotsUseCase(_slots.Value), LazyThreadSafetyMode.None);
+                    _updateWarehouseSlot = new Lazy<UpdateWarehouseSlotUseCase>(() => new UpdateWarehouseSlotUseCase(_warehouses.Value), LazyThreadSafetyMode.None);
+                    _warehouseSlotUseCases = new Lazy<WarehouseSlotUseCases>(() => new WarehouseSlotUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
+                    _gradeLookup = new Lazy<GradeLookupUseCase>(() => new GradeLookupUseCase(_inspection.Value), LazyThreadSafetyMode.None);
+                    _outcomeFlow = new Lazy<OutcomeFlowUseCases>(() => new OutcomeFlowUseCases(_warehouses.Value, _storedProc.Value, _cmdRepo.Value, _cmdQueries.Value), LazyThreadSafetyMode.None);
+                    _incomeFlow = new Lazy<IncomeFlowUseCases>(() => new IncomeFlowUseCases(_storedProc.Value, _cmdRepo.Value, _cmdQueries.Value, _warehouses.Value), LazyThreadSafetyMode.None);
+                    _filterMetadata = new Lazy<FilterMetadataUseCase>(() => new FilterMetadataUseCase(_metadata.Value), LazyThreadSafetyMode.None);
+                    _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);
+                    _labelManagementUseCases = new Lazy<LabelManagementUseCases>(() => new LabelManagementUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value), LazyThreadSafetyMode.None);
                 }
                 catch (Exception ex)
                 {
@@ -385,7 +387,19 @@ namespace GbtpLib.Mssql.Application.Services
                             catch (Exception ex)
                             {
                                 try { AppLog.Error("UsingReadOnlyServices failed.", ex); } catch { }
-                                return default(T);
+                                // Lazy.Value 등 초기화 실패 시 새 Services로 1회 재시도
+                                try
+                                {
+                                    using (var retryServices = CreateServices())
+                                    {
+                                        return action(retryServices);
+                                    }
+                                }
+                                catch (Exception rex)
+                                {
+                                    try { AppLog.Error("UsingReadOnlyServices retry failed.", rex); } catch { }
+                                    return default(T);
+                                }
                             }
                         }
 
@@ -400,7 +414,23 @@ namespace GbtpLib.Mssql.Application.Services
                         {
                             try { services.Rollback(); } catch { /* swallow rollback errors */ }
                             try { AppLog.Error("UsingServices failed.", ex); } catch { }
-                            return default(T);
+                            // Lazy.Value 등 초기화 실패 시 새 Services로 1회 재시도 (새 트랜잭션)
+                            try
+                            {
+                                using (var retryServices = CreateServices())
+                                {
+                                    retryServices.Begin();
+                                    var retryResult = action(retryServices);
+                                    retryServices.Commit();
+                                    return retryResult;
+                                }
+                            }
+                            catch (Exception rex)
+                            {
+                                // 재시도 실패 시 롤백 및 기본값 반환
+                                try { AppLog.Error("UsingServices retry failed.", rex); } catch { }
+                                return default(T);
+                            }
                         }
                     }
                 }
@@ -429,7 +459,7 @@ namespace GbtpLib.Mssql.Application.Services
         }
 
         /// <summary>
-        /// 비동기 실행 코어 로직. readOnly 여부에 따라 트랜잭션을 시작/커밋하거나 생략합니다. 예외 시 롤백 후 default(T)를 반환합니다.
+        /// 비동기 실행 코어 로직. readOnly 여부에 따라 트랜잭션을 시작/커밋하거나 생략합니다. 예외 시 롤백 후 default(T>)을 반환합니다.
         /// </summary>
         private static async Task<T> UsingServicesAsyncCore<T>(Func<Services, Task<T>> action, bool readOnly)
         {
@@ -448,7 +478,20 @@ namespace GbtpLib.Mssql.Application.Services
                         catch (Exception ex)
                         {
                             try { AppLog.Error("UsingReadOnlyServicesAsync failed.", ex); } catch { }
-                            return default(T);
+                            // Lazy.Value 등 초기화 실패 시 새 Services로 1회 재시도
+                            try
+                            {
+                                using (var retryServices = CreateServices())
+                                {
+                                    var retryResult = await action(retryServices).ConfigureAwait(false);
+                                    return retryResult;
+                                }
+                            }
+                            catch (Exception rex)
+                            {
+                                try { AppLog.Error("UsingReadOnlyServicesAsync retry failed.", rex); } catch { }
+                                return default(T);
+                            }
                         }
                     }
 
@@ -463,7 +506,22 @@ namespace GbtpLib.Mssql.Application.Services
                     {
                         try { await services.RollbackAsync().ConfigureAwait(false); } catch { /* swallow rollback errors */ }
                         try { AppLog.Error("UsingServicesAsync failed.", ex); } catch { }
-                        return default(T);
+                        // Lazy.Value 등 초기화 실패 시 새 Services로 1회 재시도 (새 트랜잭션)
+                        try
+                        {
+                            using (var retryServices = CreateServices())
+                            {
+                                await retryServices.BeginAsync().ConfigureAwait(false);
+                                var retryResult = await action(retryServices).ConfigureAwait(false);
+                                await retryServices.CommitAsync().ConfigureAwait(false);
+                                return retryResult;
+                            }
+                        }
+                        catch (Exception rex)
+                        {
+                            try { AppLog.Error("UsingServicesAsync retry failed.", rex); } catch { }
+                            return default(T);
+                        }
                     }
                 }
             }

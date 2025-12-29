@@ -1,0 +1,180 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using GbtpLib.Mssql.Domain;
+using GbtpLib.Mssql.Persistence.Entities;
+using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
+using GbtpLib.Logging;
+
+namespace GbtpLib.Mssql.Application.UseCases
+{
+    /// <summary>
+    /// Aggregates label-related operations (create/delete, metadata, validation, slot assignment, flows).
+    /// </summary>
+    public class LabelManagementUseCases
+    {
+        private readonly IMstBtrRepository _btrRepo;
+        private readonly IInvWarehouseRepository _whRepo;
+        private readonly ILabelCreationQueries _labelQueries;
+        private readonly IMstBtrTypeRepository _btrTypeRepo;
+
+        public LabelManagementUseCases(
+            IMstBtrRepository btrRepo,
+            IInvWarehouseRepository whRepo,
+            ILabelCreationQueries labelQueries,
+            IMstBtrTypeRepository btrTypeRepo)
+        {
+            _btrRepo = btrRepo ?? throw new ArgumentNullException(nameof(btrRepo));
+            _whRepo = whRepo ?? throw new ArgumentNullException(nameof(whRepo));
+            _labelQueries = labelQueries ?? throw new ArgumentNullException(nameof(labelQueries));
+            _btrTypeRepo = btrTypeRepo ?? throw new ArgumentNullException(nameof(btrTypeRepo));
+        }
+
+        // Basic create/delete
+        public async Task<bool> CreateLabelAsync(MstBtrEntity entity, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.CreateLabelAsync failed.", ex);
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteLabelAsync(string labelId, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var affected = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.DeleteLabelAsync failed.", ex);
+                throw;
+            }
+        }
+
+        public Task<int> GetNextVersionAsync(string collectDate, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                return _btrRepo.GetNextVersionAsync(collectDate, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.GetNextVersionAsync failed.", ex);
+                throw;
+            }
+        }
+
+        // Create and assign slot
+        public async Task<bool> CreateLabelAndAssignSlotAsync(MstBtrEntity label, WarehouseSlotUpdateDto slot, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var ins = await _btrRepo.InsertAsync(label, ct).ConfigureAwait(false);
+                if (ins < 1) return false;
+
+                var upd = await _whRepo.UpdateLabelAndGradeAsync(slot, ct).ConfigureAwait(false);
+                if (upd < 1)
+                {
+                    try { await _btrRepo.DeleteAsync(label.LabelId, ct).ConfigureAwait(false); } catch { }
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.CreateLabelAndAssignSlotAsync failed.", ex);
+                throw;
+            }
+        }
+
+        // Delete flow (delete + clear slots)
+        public async Task<bool> DeleteLabelFlowAsync(string labelId, string siteCode = null, string factoryCode = null, string warehouseCode = null, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var del = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
+                if (del < 1) return false;
+
+                await _whRepo.ClearLabelByLabelIdAsync(labelId, siteCode, factoryCode, warehouseCode, ct).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.DeleteLabelFlowAsync failed.", ex);
+                throw;
+            }
+        }
+
+        // Metadata for label creation UI
+        public async Task<IReadOnlyList<LabelCreationInfoDto>> GetLabelCreationMetadataAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                return await _labelQueries.GetLabelCreationInfosAsync(ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.GetLabelCreationMetadataAsync failed.", ex);
+                throw;
+            }
+        }
+
+        // Validation + create (mirrors LabelCreationUseCase)
+        public async Task<string> GetPackModuleCodeAsync(int batteryTypeNo, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
+                return type?.PackModuleCode;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.GetPackModuleCodeAsync failed.", ex);
+                throw;
+            }
+        }
+
+        public async Task<bool> CreateWithValidationAsync(string labelId, int batteryTypeNo, string packModuleCode, string siteCode, string collectDate, string collectReason, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
+                if (type == null) return false;
+
+                var entity = new MstBtrEntity
+                {
+                    LabelId = labelId,
+                    BatteryTypeNo = batteryTypeNo,
+                    PackModuleCode = packModuleCode,
+                    SiteCode = siteCode,
+                    CollectDate = collectDate,
+                    CollectReason = collectReason,
+                    PrintYn = "N",
+                    BatteryStatus = "01",
+                    StoreInspFlag = "N",
+                    EnergyInspFlag = "N",
+                    DigInspFlag = "N",
+                    UseYn = "Y",
+                    RegDateTime = DateTime.UtcNow,
+                };
+
+                var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.CreateWithValidationAsync failed.", ex);
+                throw;
+            }
+        }
+    }
+}

@@ -24,12 +24,6 @@ namespace GbtpLib.Mssql.Domain
         UNUSED,
     }
 
-    public enum EIfFlag
-    {
-        C, // Created / Pending
-        Y, // Completed / Acknowledged
-    }
-
     public enum EYnFlag
     {
         Y,

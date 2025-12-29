@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using GbtpLib.Mssql.Application.Abstractions;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
 
@@ -16,11 +15,9 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class FilterMetadataUseCase
     {
-        private readonly IUnitOfWork _uow;
         private readonly IMetadataQueries _queries;
-        public FilterMetadataUseCase(IUnitOfWork uow, IMetadataQueries queries)
+        public FilterMetadataUseCase(IMetadataQueries queries)
         {
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _queries = queries ?? throw new ArgumentNullException(nameof(queries));
         }
 
