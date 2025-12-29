@@ -60,6 +60,7 @@
     <Compile Include="Mssql\Application\UseCases\IncomeFlowsUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\InitializeSlotsUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\InterfaceCommandUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\InterfaceFlowUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\LabelManagementUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\LoginUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\MetadataUseCases.cs" />
