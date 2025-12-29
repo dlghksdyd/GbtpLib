@@ -41,6 +41,22 @@ namespace GbtpLib.Mssql.Application.UseCases
                 throw;
             }
         }
+
+        /// <summary>
+        /// Calculates next Version (MAX(VER)+1) for the given collect date.
+        /// </summary>
+        public async Task<int> GetNextVersionAsync(string collectDate, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                return await _btrRepo.GetNextVersionAsync(collectDate, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("CreateLabelUseCase.GetNextVersionAsync failed.", ex);
+                throw;
+            }
+        }
     }
 
     /// <summary>

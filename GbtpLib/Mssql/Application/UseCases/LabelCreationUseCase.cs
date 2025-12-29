@@ -28,6 +28,23 @@ namespace GbtpLib.Mssql.Application.UseCases
         }
 
         /// <summary>
+        /// Returns the pack/module code for the given battery type.
+        /// </summary>
+        public async Task<string> GetPackModuleCodeAsync(int batteryTypeNo, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
+                return type?.PackModuleCode;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelCreationUseCase.GetPackModuleCodeAsync failed.", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Creates the label after validating the battery type.
         /// </summary>
         public async Task<bool> CreateAsync(string labelId, int batteryTypeNo, string packModuleCode, string siteCode, string collectDate, string collectReason, CancellationToken ct = default(CancellationToken))

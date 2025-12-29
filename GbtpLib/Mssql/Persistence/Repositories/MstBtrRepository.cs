@@ -1,5 +1,6 @@
 using System;
 using System.Data.Entity;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Persistence.Abstractions;
@@ -30,6 +31,17 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             if (item == null) return 0;
             _db.Set<MstBtrEntity>().Remove(item);
             return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<int> GetNextVersionAsync(string collectDate, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // COLT_DAT is 8-char yyyyMMdd string
+            var query = _db.Set<MstBtrEntity>().AsNoTracking().Where(x => x.CollectDate == collectDate);
+            var maxVer = await query.MaxAsync(x => (int?)x.Version, cancellationToken).ConfigureAwait(false);
+            if (!maxVer.HasValue || maxVer.Value < 1)
+                return 1;
+            return maxVer.Value + 1;
         }
     }
 }
