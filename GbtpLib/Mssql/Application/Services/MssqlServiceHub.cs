@@ -212,6 +212,7 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<IQltBtrInspQueries> _inspection;
             private readonly Lazy<IDefectBatteryQueries> _defects;
             private readonly Lazy<IWarehouseQueries> _warehouseQueries;
+            private readonly Lazy<IQltBtrInoutInspRepository> _inoutInspectionRepo;
 
             // 공개 UseCases (Lazy 초기화)
             private readonly Lazy<LoginUseCase> _login;
@@ -226,6 +227,8 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<FilterMetadataUseCase> _filterMetadata;
             private readonly Lazy<InterfaceCommandUseCases> _interfaceCommandUseCases;
             private readonly Lazy<LabelManagementUseCases> _labelManagementUseCases;
+            private readonly Lazy<InoutInspectionUseCases> _inoutInspectionUseCases;
+            private readonly Lazy<InoutInspectionSaveUseCases> _inoutInspectionSaveUseCases;
 
             // 공개 접근자 (Lazy.Value 반환)
             public LoginUseCase Login { get { return _login.Value; } }
@@ -242,6 +245,8 @@ namespace GbtpLib.Mssql.Application.Services
             public FilterMetadataUseCase FilterMetadata { get { return _filterMetadata.Value; } }
             public InterfaceCommandUseCases InterfaceCommands { get { return _interfaceCommandUseCases.Value; } }
             public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
+            public InoutInspectionUseCases InoutInspection { get { return _inoutInspectionUseCases.Value; } }
+            public InoutInspectionSaveUseCases InoutInspectionSave { get { return _inoutInspectionSaveUseCases.Value; } }
 
             internal Services(IAppDbContext db, IUnitOfWork uow)
             {
@@ -265,6 +270,7 @@ namespace GbtpLib.Mssql.Application.Services
                     _inspection = new Lazy<IQltBtrInspQueries>(() => new QltBtrInspQueries(_db), LazyThreadSafetyMode.None);
                     _defects = new Lazy<IDefectBatteryQueries>(() => new DefectBatteryQueries(_db), LazyThreadSafetyMode.None);
                     _warehouseQueries = new Lazy<IWarehouseQueries>(() => new WarehouseQueries(_db), LazyThreadSafetyMode.None);
+                    _inoutInspectionRepo = new Lazy<IQltBtrInoutInspRepository>(() => new QltBtrInoutInspRepository(_db), LazyThreadSafetyMode.None);
 
                     // usecases (지연 생성)
                     _login = new Lazy<LoginUseCase>(() => new LoginUseCase(_users.Value), LazyThreadSafetyMode.None);
@@ -279,6 +285,8 @@ namespace GbtpLib.Mssql.Application.Services
                     _filterMetadata = new Lazy<FilterMetadataUseCase>(() => new FilterMetadataUseCase(_metadata.Value), LazyThreadSafetyMode.None);
                     _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);
                     _labelManagementUseCases = new Lazy<LabelManagementUseCases>(() => new LabelManagementUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value), LazyThreadSafetyMode.None);
+                    _inoutInspectionUseCases = new Lazy<InoutInspectionUseCases>(() => new InoutInspectionUseCases(_inspection.Value), LazyThreadSafetyMode.None);
+                    _inoutInspectionSaveUseCases = new Lazy<InoutInspectionSaveUseCases>(() => new InoutInspectionSaveUseCases(_inoutInspectionRepo.Value), LazyThreadSafetyMode.None);
                 }
                 catch (Exception ex)
                 {

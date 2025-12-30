@@ -59,6 +59,8 @@
     <Compile Include="Mssql\Application\UseCases\GradeLookupUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\IncomeFlowsUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\InitializeSlotsUseCase.cs" />
+    <Compile Include="Mssql\Application\UseCases\InoutInspectionSaveUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\InoutInspectionUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\InterfaceCommandUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\InterfaceFlowUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\LabelManagementUseCases.cs" />
@@ -153,6 +155,7 @@
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstBtrTypeRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstCodeRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstUserInfoRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IQltBtrInoutInspRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IQltBtrInspQueries.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\ISlotQueryRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IStoredProcedureExecutor.cs" />
@@ -168,6 +171,7 @@
     <Compile Include="Mssql\Persistence\Repositories\MstBtrTypeRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\MstCodeRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\MstUserInfoRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\QltBtrInoutInspRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\QltBtrInspQueries.cs" />
     <Compile Include="Mssql\Persistence\Repositories\SlotQueryRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\StoredProcedureExecutor.cs" />

@@ -22,11 +22,18 @@ namespace GbtpLib.Mssql.Application.UseCases
             _warehouseRepo = warehouseRepo ?? throw new ArgumentNullException(nameof(warehouseRepo));
         }
 
-        // Queries (from InitializeSlotsUseCase)
-        public async Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
+        // Generic query usable by both Income and Outcome contexts
+        public async Task<IReadOnlyList<SlotInfoDto>> GetWarehouseSlotsAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
         {
             try { return await _slotQueries.GetOutcomeWaitSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false); }
-            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.GetOutcomeWaitAsync failed.", ex); throw; }
+            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.GetWarehouseSlotsAsync failed.", ex); throw; }
+        }
+
+        // Back-compat (deprecated): Outcome-wait specific name
+        [Obsolete("Use GetWarehouseSlotsAsync for both income/outcome contexts.")]
+        public async Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
+        {
+            return await GetWarehouseSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false);
         }
 
         public async Task<IReadOnlyList<SlotInfoDto>> GetLoadingAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
