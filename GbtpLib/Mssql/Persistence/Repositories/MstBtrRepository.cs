@@ -43,5 +43,16 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 return 1;
             return maxVer.Value + 1;
         }
+
+        // Update print flag
+        public async Task<int> UpdatePrintYnAsync(string labelId, string printYn, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var item = await _db.Set<MstBtrEntity>().FirstOrDefaultAsync(x => x.LabelId == labelId, cancellationToken).ConfigureAwait(false);
+            if (item == null) return 0;
+            item.PrintYn = printYn;
+            item.ModDateTime = DateTime.UtcNow;
+            return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

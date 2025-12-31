@@ -176,5 +176,20 @@ namespace GbtpLib.Mssql.Application.UseCases
                 throw;
             }
         }
+
+        // Set print flag
+        public async Task<bool> SetPrintedAsync(string labelId, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var affected = await _btrRepo.UpdatePrintYnAsync(labelId, "Y", ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.SetPrintedAsync failed.", ex);
+                throw;
+            }
+        }
     }
 }

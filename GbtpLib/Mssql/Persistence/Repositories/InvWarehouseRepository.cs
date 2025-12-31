@@ -79,5 +79,26 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
             return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
+
+        public async Task<int> UpdateStoreDivAsync(int row, int col, int lvl, string warehouseCode, string storeDiv, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string sRow = row.ToString();
+            string sCol = col.ToString();
+            string sLvl = lvl.ToString();
+
+            var entity = await _db.Set<InvWarehouseEntity>()
+                .FirstOrDefaultAsync(x => x.WarehouseCode == warehouseCode
+                                       && x.Row == sRow
+                                       && x.Col == sCol
+                                       && x.Level == sLvl, cancellationToken)
+                                       .ConfigureAwait(false);
+            if (entity == null) return 0;
+
+            entity.StoreDiv = storeDiv ?? string.Empty;
+
+            return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

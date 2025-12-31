@@ -9,22 +9,21 @@ using GbtpLib.Logging;
 namespace GbtpLib.Mssql.Application.UseCases
 {
     /// <summary>
-    /// Aggregates interface command-related operations: enqueue, acknowledge, polling and SP-based requests.
+    /// Aggregates interface command-related operations: enqueue, acknowledge, polling.
+    /// Stored procedure calls have been centralized into StoredProcCommandUseCases.
     /// </summary>
     public class InterfaceCommandUseCases
     {
         private readonly IItfCmdDataRepository _repo;
         private readonly IItfCmdDataQueries _queries;
-        private readonly IStoredProcedureExecutor _sp;
 
         public InterfaceCommandUseCases(
             IItfCmdDataRepository repo,
             IItfCmdDataQueries queries,
-            IStoredProcedureExecutor sp)
+            IStoredProcedureExecutor _ /* obsolete: kept for backward compat constructor overload */)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _queries = queries ?? throw new ArgumentNullException(nameof(queries));
-            _sp = sp ?? throw new ArgumentNullException(nameof(sp));
         }
 
         // Repository-based operations
@@ -72,75 +71,22 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
-        // Stored-procedure based operations
-        public async Task<bool> RequestAcceptAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
+        /// <summary>
+        /// Waits for any row with the given command and IF_FLAG pending, then acknowledges it (no DATA1 constraint).
+        /// </summary>
+        public async Task<bool> WaitForAndAcknowledgeByCmdAsync(EIfCmd cmdToWait, CancellationToken ct = default(CancellationToken))
         {
             try
             {
-                var parameters = new Dictionary<string, object>
-                {
-                    {"@IN_CMD_CD", EIfCmd.AA2.ToString()},
-                    {"@IN_DATA1", label},
-                    {"@IN_DATA2", row},
-                    {"@IN_DATA3", col},
-                    {"@IN_DATA4", lvl},
-                    {"@IN_REQ_SYS", reqSys},
-                };
-                var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
-                return result >= 0;
+                var list = await _queries.GetPendingAsync(cmdToWait.ToString(), null, ct).ConfigureAwait(false);
+                if (list.Count == 0) return false;
+                var first = list[0];
+                var affected = await _repo.AcknowledgeAsync(cmdToWait, first.Data1, ct).ConfigureAwait(false);
+                return affected > 0;
             }
             catch (Exception ex)
             {
-                AppLog.Error("InterfaceCommandUseCases.RequestAcceptAsync failed.", ex);
-                throw;
-            }
-        }
-
-        public async Task<bool> RequestRejectAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
-        {
-            try
-            {
-                var parameters = new Dictionary<string, object>
-                {
-                    {"@IN_CMD_CD", EIfCmd.AA4.ToString()},
-                    {"@IN_DATA1", label},
-                    {"@IN_DATA2", row},
-                    {"@IN_DATA3", col},
-                    {"@IN_DATA4", lvl},
-                    {"@IN_REQ_SYS", reqSys},
-                };
-                var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
-                return result >= 0;
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error("InterfaceCommandUseCases.RequestRejectAsync failed.", ex);
-                throw;
-            }
-        }
-
-        public async Task<bool> RequestDefectToLoadingAsync(string label, int defectRow, int defectCol, int defectLvl, int loadingRow, int loadingCol, int loadingLvl, string reqSys, CancellationToken ct = default(CancellationToken))
-        {
-            try
-            {
-                var parameters = new Dictionary<string, object>
-                {
-                    {"@IN_CMD_CD", EIfCmd.EE7.ToString()},
-                    {"@IN_DATA1", label},
-                    {"@IN_DATA2", defectRow},
-                    {"@IN_DATA3", defectCol},
-                    {"@IN_DATA4", defectLvl},
-                    {"@IN_DATA5", loadingRow},
-                    {"@IN_DATA6", loadingCol},
-                    {"@IN_DATA7", loadingLvl},
-                    {"@IN_REQ_SYS", reqSys},
-                };
-                var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
-                return result >= 0;
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error("InterfaceCommandUseCases.RequestDefectToLoadingAsync failed.", ex);
+                AppLog.Error("InterfaceCommandUseCases.WaitForAndAcknowledgeByCmdAsync failed.", ex);
                 throw;
             }
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading; // added for SynchronizationContext
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Application.Abstractions;
@@ -139,7 +140,7 @@ namespace GbtpLib.Mssql.Application.Services
         }
 
         /// <summary>
-        /// 서비스 묶음을 동기 실행합니다. 트랜잭션을 자동으로 시작/커밋하며, 예외 시 롤백 후 default(T)를 반환합니다.
+        /// 서비스 묶음을 동기 실행합니다. 트랜잭션을 자동으로 시작/커밋하며, 예외 시 롤백 후 default(T)을 반환합니다.
         /// WPF UI 컨텍스트에서 호출되면 Task.Run으로 백그라운드에서 실행됩니다.
         /// </summary>
         /// <typeparam name="T">액션 결과 타입</typeparam>
@@ -229,6 +230,10 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<LabelManagementUseCases> _labelManagementUseCases;
             private readonly Lazy<InoutInspectionUseCases> _inoutInspectionUseCases;
             private readonly Lazy<InoutInspectionSaveUseCases> _inoutInspectionSaveUseCases;
+            private readonly Lazy<IncomeCommandUseCases> _incomeCommandUseCases;
+            private readonly Lazy<WarehouseSlotCommandUseCases> _warehouseSlotCommandUseCases;
+            private readonly Lazy<OutcomeCommandUseCases> _outcomeCommandUseCases;
+            private readonly Lazy<StoredProcCommandUseCases> _storedProcCommandUseCases;
 
             // 공개 접근자 (Lazy.Value 반환)
             public LoginUseCase Login { get { return _login.Value; } }
@@ -247,6 +252,10 @@ namespace GbtpLib.Mssql.Application.Services
             public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
             public InoutInspectionUseCases InoutInspection { get { return _inoutInspectionUseCases.Value; } }
             public InoutInspectionSaveUseCases InoutInspectionSave { get { return _inoutInspectionSaveUseCases.Value; } }
+            public IncomeCommandUseCases IncomeCommands { get { return _incomeCommandUseCases.Value; } }
+            public WarehouseSlotCommandUseCases WarehouseSlotCommands { get { return _warehouseSlotCommandUseCases.Value; } }
+            public OutcomeCommandUseCases OutcomeCommands { get { return _outcomeCommandUseCases.Value; } }
+            public StoredProcCommandUseCases StoredProcCommands { get { return _storedProcCommandUseCases.Value; } }
 
             internal Services(IAppDbContext db, IUnitOfWork uow)
             {
@@ -287,6 +296,10 @@ namespace GbtpLib.Mssql.Application.Services
                     _labelManagementUseCases = new Lazy<LabelManagementUseCases>(() => new LabelManagementUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value), LazyThreadSafetyMode.None);
                     _inoutInspectionUseCases = new Lazy<InoutInspectionUseCases>(() => new InoutInspectionUseCases(_inspection.Value), LazyThreadSafetyMode.None);
                     _inoutInspectionSaveUseCases = new Lazy<InoutInspectionSaveUseCases>(() => new InoutInspectionSaveUseCases(_inoutInspectionRepo.Value), LazyThreadSafetyMode.None);
+                    _incomeCommandUseCases = new Lazy<IncomeCommandUseCases>(() => new IncomeCommandUseCases(_storedProc.Value), LazyThreadSafetyMode.None);
+                    _warehouseSlotCommandUseCases = new Lazy<WarehouseSlotCommandUseCases>(() => new WarehouseSlotCommandUseCases(_warehouses.Value), LazyThreadSafetyMode.None);
+                    _outcomeCommandUseCases = new Lazy<OutcomeCommandUseCases>(() => new OutcomeCommandUseCases(_storedProc.Value), LazyThreadSafetyMode.None);
+                    _storedProcCommandUseCases = new Lazy<StoredProcCommandUseCases>(() => new StoredProcCommandUseCases(_storedProc.Value), LazyThreadSafetyMode.None);
                 }
                 catch (Exception ex)
                 {

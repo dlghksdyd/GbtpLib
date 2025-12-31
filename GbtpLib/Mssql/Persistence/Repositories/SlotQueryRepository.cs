@@ -65,12 +65,13 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                            && (btr == null || btr.UseYn == "Y")
                         select new { inv, insp, site, btr, btrType, carMake, car, btrMake };
 
-            var list = await query
-                .Select(x => new SlotInfoDto
+            // Materialize results from the database first (server-side projection only contains EF-translatable members)
+            var rawList = await query
+                .Select(x => new
                 {
-                    Row = SafeParseInt(x.inv.Row),
-                    Col = SafeParseInt(x.inv.Col),
-                    Level = SafeParseInt(x.inv.Level),
+                    Row = x.inv.Row,
+                    Col = x.inv.Col,
+                    Level = x.inv.Level,
                     LabelId = x.inv.LabelId,
                     InspectGrade = x.insp != null ? x.insp.InspectGrade : null,
                     SiteName = x.site != null ? x.site.SiteName : null,
@@ -85,6 +86,27 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 })
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
+
+            // Client-side mapping for non-translatable operations (like SafeParseInt)
+            var list = rawList
+                .Select(x => new SlotInfoDto
+                {
+                    Row = SafeParseInt(x.Row),
+                    Col = SafeParseInt(x.Col),
+                    Level = SafeParseInt(x.Level),
+                    LabelId = x.LabelId,
+                    InspectGrade = x.InspectGrade,
+                    SiteName = x.SiteName,
+                    CollectDate = x.CollectDate,
+                    CollectReason = x.CollectReason,
+                    PackModuleCode = x.PackModuleCode,
+                    BatteryTypeName = x.BatteryTypeName,
+                    CarReleaseYear = x.CarReleaseYear,
+                    CarMakeName = x.CarMakeName,
+                    CarName = x.CarName,
+                    BatteryMakeName = x.BatteryMakeName,
+                })
+                .ToList();
 
             return list;
         }
