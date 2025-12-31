@@ -219,42 +219,28 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<LoginUseCase> _login;
             private readonly Lazy<GetCodeUseCase> _getCode;
             private readonly Lazy<MetadataUseCases> _metadataUseCases;
-            private readonly Lazy<InitializeSlotsUseCase> _initializeSlots;
-            private readonly Lazy<UpdateWarehouseSlotUseCase> _updateWarehouseSlot;
             private readonly Lazy<WarehouseSlotUseCases> _warehouseSlotUseCases;
+            private readonly Lazy<WarehouseSlotSearchUseCases> _warehouseSlotSearchUseCases;
             private readonly Lazy<GradeLookupUseCase> _gradeLookup;
-            private readonly Lazy<OutcomeFlowUseCases> _outcomeFlow;
-            private readonly Lazy<IncomeFlowUseCases> _incomeFlow;
             private readonly Lazy<FilterMetadataUseCase> _filterMetadata;
             private readonly Lazy<InterfaceCommandUseCases> _interfaceCommandUseCases;
             private readonly Lazy<LabelManagementUseCases> _labelManagementUseCases;
             private readonly Lazy<InoutInspectionUseCases> _inoutInspectionUseCases;
             private readonly Lazy<InoutInspectionSaveUseCases> _inoutInspectionSaveUseCases;
-            private readonly Lazy<IncomeCommandUseCases> _incomeCommandUseCases;
-            private readonly Lazy<WarehouseSlotCommandUseCases> _warehouseSlotCommandUseCases;
-            private readonly Lazy<OutcomeCommandUseCases> _outcomeCommandUseCases;
             private readonly Lazy<StoredProcCommandUseCases> _storedProcCommandUseCases;
 
             // 공개 접근자 (Lazy.Value 반환)
             public LoginUseCase Login { get { return _login.Value; } }
             public GetCodeUseCase GetCode { get { return _getCode.Value; } }
             public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
-            // Back-compat individual slot use cases
-            public InitializeSlotsUseCase InitializeSlots { get { return _initializeSlots.Value; } }
-            public UpdateWarehouseSlotUseCase UpdateWarehouseSlot { get { return _updateWarehouseSlot.Value; } }
-            // New consolidated slot use cases
             public WarehouseSlotUseCases Slots { get { return _warehouseSlotUseCases.Value; } }
+            public WarehouseSlotSearchUseCases SlotSearch { get { return _warehouseSlotSearchUseCases.Value; } }
             public GradeLookupUseCase GradeLookup { get { return _gradeLookup.Value; } }
-            public OutcomeFlowUseCases OutcomeFlow { get { return _outcomeFlow.Value; } }
-            public IncomeFlowUseCases IncomeFlow { get { return _incomeFlow.Value; } }
             public FilterMetadataUseCase FilterMetadata { get { return _filterMetadata.Value; } }
             public InterfaceCommandUseCases InterfaceCommands { get { return _interfaceCommandUseCases.Value; } }
             public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
             public InoutInspectionUseCases InoutInspection { get { return _inoutInspectionUseCases.Value; } }
             public InoutInspectionSaveUseCases InoutInspectionSave { get { return _inoutInspectionSaveUseCases.Value; } }
-            public IncomeCommandUseCases IncomeCommands { get { return _incomeCommandUseCases.Value; } }
-            public WarehouseSlotCommandUseCases WarehouseSlotCommands { get { return _warehouseSlotCommandUseCases.Value; } }
-            public OutcomeCommandUseCases OutcomeCommands { get { return _outcomeCommandUseCases.Value; } }
             public StoredProcCommandUseCases StoredProcCommands { get { return _storedProcCommandUseCases.Value; } }
 
             internal Services(IAppDbContext db, IUnitOfWork uow)
@@ -285,20 +271,14 @@ namespace GbtpLib.Mssql.Application.Services
                     _login = new Lazy<LoginUseCase>(() => new LoginUseCase(_users.Value), LazyThreadSafetyMode.None);
                     _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);
                     _metadataUseCases = new Lazy<MetadataUseCases>(() => new MetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
-                    _initializeSlots = new Lazy<InitializeSlotsUseCase>(() => new InitializeSlotsUseCase(_slots.Value), LazyThreadSafetyMode.None);
-                    _updateWarehouseSlot = new Lazy<UpdateWarehouseSlotUseCase>(() => new UpdateWarehouseSlotUseCase(_warehouses.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotUseCases = new Lazy<WarehouseSlotUseCases>(() => new WarehouseSlotUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
+                    _warehouseSlotSearchUseCases = new Lazy<WarehouseSlotSearchUseCases>(() => new WarehouseSlotSearchUseCases(_slots.Value), LazyThreadSafetyMode.None);
                     _gradeLookup = new Lazy<GradeLookupUseCase>(() => new GradeLookupUseCase(_inspection.Value), LazyThreadSafetyMode.None);
-                    _outcomeFlow = new Lazy<OutcomeFlowUseCases>(() => new OutcomeFlowUseCases(_warehouses.Value, _storedProc.Value, _cmdRepo.Value, _cmdQueries.Value), LazyThreadSafetyMode.None);
-                    _incomeFlow = new Lazy<IncomeFlowUseCases>(() => new IncomeFlowUseCases(_storedProc.Value, _cmdRepo.Value, _cmdQueries.Value, _warehouses.Value), LazyThreadSafetyMode.None);
                     _filterMetadata = new Lazy<FilterMetadataUseCase>(() => new FilterMetadataUseCase(_metadata.Value), LazyThreadSafetyMode.None);
                     _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);
                     _labelManagementUseCases = new Lazy<LabelManagementUseCases>(() => new LabelManagementUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value), LazyThreadSafetyMode.None);
                     _inoutInspectionUseCases = new Lazy<InoutInspectionUseCases>(() => new InoutInspectionUseCases(_inspection.Value), LazyThreadSafetyMode.None);
                     _inoutInspectionSaveUseCases = new Lazy<InoutInspectionSaveUseCases>(() => new InoutInspectionSaveUseCases(_inoutInspectionRepo.Value), LazyThreadSafetyMode.None);
-                    _incomeCommandUseCases = new Lazy<IncomeCommandUseCases>(() => new IncomeCommandUseCases(_storedProc.Value), LazyThreadSafetyMode.None);
-                    _warehouseSlotCommandUseCases = new Lazy<WarehouseSlotCommandUseCases>(() => new WarehouseSlotCommandUseCases(_warehouses.Value), LazyThreadSafetyMode.None);
-                    _outcomeCommandUseCases = new Lazy<OutcomeCommandUseCases>(() => new OutcomeCommandUseCases(_storedProc.Value), LazyThreadSafetyMode.None);
                     _storedProcCommandUseCases = new Lazy<StoredProcCommandUseCases>(() => new StoredProcCommandUseCases(_storedProc.Value), LazyThreadSafetyMode.None);
                 }
                 catch (Exception ex)

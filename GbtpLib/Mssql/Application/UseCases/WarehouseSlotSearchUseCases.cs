@@ -10,36 +10,39 @@ using GbtpLib.Logging;
 namespace GbtpLib.Mssql.Application.UseCases
 {
     /// <summary>
-    /// Provides search for defect-warehouse batteries with optional filters.
-    /// Falls back to in-memory filtering of slot results from ISlotQueryRepository.
+    /// Consolidated warehouse-slot search use cases for outcome-wait/defect warehouses with common filters.
     /// </summary>
-    public class DefectSearchUseCases
+    public class WarehouseSlotSearchUseCases
     {
         private readonly ISlotQueryRepository _slots;
-        public DefectSearchUseCases(ISlotQueryRepository slots)
+        public WarehouseSlotSearchUseCases(ISlotQueryRepository slots)
         {
             _slots = slots ?? throw new ArgumentNullException(nameof(slots));
         }
 
+        /// <summary>
+        /// Searches slots in a given warehouse with unified optional filters.
+        /// </summary>
         public async Task<IReadOnlyList<SlotInfoDto>> SearchAsync(
             string siteCode,
             string factoryCode,
-            string defectWarehouseCode,
+            string warehouseCode,
             string labelSubstring,
             string carMakeName,
             string carName,
             string batteryMakeName,
             string releaseYear,
             string batteryTypeName,
+            string grade,
             DateTime? startCollectDate,
             DateTime? endCollectDate,
             CancellationToken ct = default(CancellationToken))
         {
             try
             {
-                // ISlotQueryRepository does not expose a generic method; use outcome-wait query for arbitrary warehouse
-                var list = await _slots.GetOutcomeWaitSlotsAsync(siteCode, factoryCode, defectWarehouseCode, ct).ConfigureAwait(false);
+                var list = await _slots.GetOutcomeWaitSlotsAsync(siteCode, factoryCode, warehouseCode, ct).ConfigureAwait(false);
                 IEnumerable<SlotInfoDto> q = list;
+
                 if (!string.IsNullOrWhiteSpace(labelSubstring))
                     q = q.Where(x => (x.LabelId ?? string.Empty).IndexOf(labelSubstring, StringComparison.OrdinalIgnoreCase) >= 0);
                 if (!string.IsNullOrWhiteSpace(carMakeName))
@@ -52,15 +55,18 @@ namespace GbtpLib.Mssql.Application.UseCases
                     q = q.Where(x => string.Equals(x.CarReleaseYear, releaseYear, StringComparison.OrdinalIgnoreCase));
                 if (!string.IsNullOrWhiteSpace(batteryTypeName))
                     q = q.Where(x => string.Equals(x.BatteryTypeName, batteryTypeName, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(grade))
+                    q = q.Where(x => string.Equals(x.InspectGrade, grade, StringComparison.OrdinalIgnoreCase));
                 if (startCollectDate.HasValue)
                     q = q.Where(x => ParseDate(x.CollectDate) >= startCollectDate.Value);
                 if (endCollectDate.HasValue)
                     q = q.Where(x => ParseDate(x.CollectDate) <= endCollectDate.Value);
+
                 return q.ToList();
             }
             catch (Exception ex)
             {
-                AppLog.Error("DefectSearchUseCases.SearchAsync failed.", ex);
+                AppLog.Error("WarehouseSlotSearchUseCases.SearchAsync failed.", ex);
                 throw;
             }
         }
@@ -68,9 +74,10 @@ namespace GbtpLib.Mssql.Application.UseCases
         private static DateTime ParseDate(string yyyymmdd)
         {
             if (string.IsNullOrWhiteSpace(yyyymmdd) || yyyymmdd.Length != 8) return DateTime.MinValue;
-            int y = int.Parse(yyyymmdd.Substring(0, 4));
-            int m = int.Parse(yyyymmdd.Substring(4, 2));
-            int d = int.Parse(yyyymmdd.Substring(6, 2));
+            int y, m, d;
+            if (!int.TryParse(yyyymmdd.Substring(0, 4), out y)) return DateTime.MinValue;
+            if (!int.TryParse(yyyymmdd.Substring(4, 2), out m)) return DateTime.MinValue;
+            if (!int.TryParse(yyyymmdd.Substring(6, 2), out d)) return DateTime.MinValue;
             return new DateTime(y, m, d);
         }
     }

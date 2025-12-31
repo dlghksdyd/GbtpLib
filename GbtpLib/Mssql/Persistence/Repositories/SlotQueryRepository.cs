@@ -21,10 +21,15 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
         {
-            return GetSlotsAsync(siteCode, factCode, whCode, ct);
+            return GetWarehouseSlotsAsync(siteCode, factCode, whCode, ct);
         }
 
         public Task<IReadOnlyList<SlotInfoDto>> GetLoadingSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
+        {
+            return GetWarehouseSlotsAsync(siteCode, factCode, whCode, ct);
+        }
+
+        public Task<IReadOnlyList<SlotInfoDto>> GetWarehouseSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
         {
             return GetSlotsAsync(siteCode, factCode, whCode, ct);
         }

@@ -25,7 +25,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Generic query usable by both Income and Outcome contexts
         public async Task<IReadOnlyList<SlotInfoDto>> GetWarehouseSlotsAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
         {
-            try { return await _slotQueries.GetOutcomeWaitSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false); }
+            try { return await _slotQueries.GetWarehouseSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false); }
             catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.GetWarehouseSlotsAsync failed.", ex); throw; }
         }
 
@@ -38,7 +38,7 @@ namespace GbtpLib.Mssql.Application.UseCases
 
         public async Task<IReadOnlyList<SlotInfoDto>> GetLoadingAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
         {
-            try { return await _slotQueries.GetLoadingSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false); }
+            try { return await _slotQueries.GetWarehouseSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false); }
             catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.GetLoadingAsync failed.", ex); throw; }
         }
 
@@ -53,6 +53,15 @@ namespace GbtpLib.Mssql.Application.UseCases
         {
             try { var affected = await _warehouseRepo.ClearLabelAsync(key, ct).ConfigureAwait(false); return affected > 0; }
             catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.ClearLabelAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Updates STORE_DIV for a slot. Consolidated here from WarehouseSlotCommandUseCases.
+        /// </summary>
+        public async Task<bool> SetStoreDivAsync(int row, int col, int lvl, string warehouseCode, string storeDiv, CancellationToken ct = default(CancellationToken))
+        {
+            try { var affected = await _warehouseRepo.UpdateStoreDivAsync(row, col, lvl, warehouseCode, storeDiv, ct).ConfigureAwait(false); return affected > 0; }
+            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.SetStoreDivAsync failed.", ex); throw; }
         }
     }
 }
