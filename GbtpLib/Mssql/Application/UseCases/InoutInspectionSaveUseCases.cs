@@ -5,6 +5,7 @@ using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Entities;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using System.Diagnostics;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -22,8 +23,10 @@ namespace GbtpLib.Mssql.Application.UseCases
         public async Task<bool> SaveAsync(InoutInspectionSaveDto dto, CancellationToken ct = default(CancellationToken))
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"InoutSave start label={dto.LabelId}");
                 var entity = new QltBtrInoutInspEntity
                 {
                     SiteCode = dto.SiteCode,
@@ -44,11 +47,14 @@ namespace GbtpLib.Mssql.Application.UseCases
                 };
 
                 var affected = await _repo.InsertAsync(entity, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"InoutSave done label={dto.LabelId}, rows={affected}, elapsedMs={sw.ElapsedMilliseconds}");
                 return affected > 0;
             }
             catch (Exception ex)
             {
-                AppLog.Error("InoutInspectionSaveUseCases.SaveAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"InoutSave error label={dto?.LabelId}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }

@@ -19,19 +19,37 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             _db = db ?? throw new ArgumentNullException(nameof(db));
         }
 
-        public Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
-        {
-            return GetWarehouseSlotsAsync(siteCode, factCode, whCode, ct);
-        }
-
-        public Task<IReadOnlyList<SlotInfoDto>> GetLoadingSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
-        {
-            return GetWarehouseSlotsAsync(siteCode, factCode, whCode, ct);
-        }
-
         public Task<IReadOnlyList<SlotInfoDto>> GetWarehouseSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
         {
             return GetSlotsAsync(siteCode, factCode, whCode, ct);
+        }
+
+        public async Task<IReadOnlyList<SlotInfoDto>> SearchWarehouseSlotsAsync(WarehouseSlotSearchFilterDto filter, CancellationToken ct = default(CancellationToken))
+        {
+            if (filter == null) throw new ArgumentNullException(nameof(filter));
+            var baseList = await GetSlotsAsync(filter.SiteCode, filter.FactoryCode, filter.WarehouseCode, ct).ConfigureAwait(false);
+
+            IEnumerable<SlotInfoDto> q = baseList;
+            if (!string.IsNullOrWhiteSpace(filter.LabelSubstring))
+                q = q.Where(x => (x.LabelId ?? string.Empty).IndexOf(filter.LabelSubstring, StringComparison.OrdinalIgnoreCase) >= 0);
+            if (!string.IsNullOrWhiteSpace(filter.CarMakeName))
+                q = q.Where(x => string.Equals(x.CarMakeName, filter.CarMakeName, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(filter.CarName))
+                q = q.Where(x => string.Equals(x.CarName, filter.CarName, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(filter.BatteryMakeName))
+                q = q.Where(x => string.Equals(x.BatteryMakeName, filter.BatteryMakeName, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(filter.ReleaseYear))
+                q = q.Where(x => string.Equals(x.CarReleaseYear, filter.ReleaseYear, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(filter.BatteryTypeName))
+                q = q.Where(x => string.Equals(x.BatteryTypeName, filter.BatteryTypeName, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(filter.Grade))
+                q = q.Where(x => string.Equals(x.InspectGrade, filter.Grade, StringComparison.OrdinalIgnoreCase));
+            if (filter.StartCollectDate.HasValue)
+                q = q.Where(x => TryParseDate(x.CollectDate) >= filter.StartCollectDate.Value);
+            if (filter.EndCollectDate.HasValue)
+                q = q.Where(x => TryParseDate(x.CollectDate) <= filter.EndCollectDate.Value);
+
+            return q.ToList();
         }
 
         private async Task<IReadOnlyList<SlotInfoDto>> GetSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct)
@@ -119,6 +137,13 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         private static int SafeParseInt(string s)
         {
             int v; return int.TryParse(s, out v) ? v : 0;
+        }
+
+        private static DateTime TryParseDate(string s)
+        {
+            DateTime dt;
+            if (DateTime.TryParse(s, out dt)) return dt;
+            return DateTime.MinValue;
         }
     }
 }

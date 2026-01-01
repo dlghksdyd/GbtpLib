@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using System.Diagnostics;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -38,47 +38,37 @@ namespace GbtpLib.Mssql.Application.UseCases
             DateTime? endCollectDate,
             CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
-                var list = await _slots.GetOutcomeWaitSlotsAsync(siteCode, factoryCode, warehouseCode, ct).ConfigureAwait(false);
-                IEnumerable<SlotInfoDto> q = list;
+                AppLog.Trace($"Slots.Search start site={siteCode}, factory={factoryCode}, wh={warehouseCode}");
+                var filter = new WarehouseSlotSearchFilterDto
+                {
+                    SiteCode = siteCode,
+                    FactoryCode = factoryCode,
+                    WarehouseCode = warehouseCode,
+                    LabelSubstring = labelSubstring,
+                    CarMakeName = carMakeName,
+                    CarName = carName,
+                    BatteryMakeName = batteryMakeName,
+                    ReleaseYear = releaseYear,
+                    BatteryTypeName = batteryTypeName,
+                    Grade = grade,
+                    StartCollectDate = startCollectDate,
+                    EndCollectDate = endCollectDate,
+                };
 
-                if (!string.IsNullOrWhiteSpace(labelSubstring))
-                    q = q.Where(x => (x.LabelId ?? string.Empty).IndexOf(labelSubstring, StringComparison.OrdinalIgnoreCase) >= 0);
-                if (!string.IsNullOrWhiteSpace(carMakeName))
-                    q = q.Where(x => string.Equals(x.CarMakeName, carMakeName, StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrWhiteSpace(carName))
-                    q = q.Where(x => string.Equals(x.CarName, carName, StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrWhiteSpace(batteryMakeName))
-                    q = q.Where(x => string.Equals(x.BatteryMakeName, batteryMakeName, StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrWhiteSpace(releaseYear))
-                    q = q.Where(x => string.Equals(x.CarReleaseYear, releaseYear, StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrWhiteSpace(batteryTypeName))
-                    q = q.Where(x => string.Equals(x.BatteryTypeName, batteryTypeName, StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrWhiteSpace(grade))
-                    q = q.Where(x => string.Equals(x.InspectGrade, grade, StringComparison.OrdinalIgnoreCase));
-                if (startCollectDate.HasValue)
-                    q = q.Where(x => ParseDate(x.CollectDate) >= startCollectDate.Value);
-                if (endCollectDate.HasValue)
-                    q = q.Where(x => ParseDate(x.CollectDate) <= endCollectDate.Value);
-
-                return q.ToList();
+                var list = await _slots.SearchWarehouseSlotsAsync(filter, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"Slots.Search done site={siteCode}, factory={factoryCode}, wh={warehouseCode}, count={(list?.Count ?? 0)}, elapsedMs={sw.ElapsedMilliseconds}");
+                return list;
             }
             catch (Exception ex)
             {
-                AppLog.Error("WarehouseSlotSearchUseCases.SearchAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"Slots.Search error site={siteCode}, factory={factoryCode}, wh={warehouseCode}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
-        }
-
-        private static DateTime ParseDate(string yyyymmdd)
-        {
-            if (string.IsNullOrWhiteSpace(yyyymmdd) || yyyymmdd.Length != 8) return DateTime.MinValue;
-            int y, m, d;
-            if (!int.TryParse(yyyymmdd.Substring(0, 4), out y)) return DateTime.MinValue;
-            if (!int.TryParse(yyyymmdd.Substring(4, 2), out m)) return DateTime.MinValue;
-            if (!int.TryParse(yyyymmdd.Substring(6, 2), out d)) return DateTime.MinValue;
-            return new DateTime(y, m, d);
         }
     }
 }

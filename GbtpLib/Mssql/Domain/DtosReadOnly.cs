@@ -56,4 +56,24 @@ namespace GbtpLib.Mssql.Domain
         public string BatteryMakeName { get; set; }
         public string Grade { get; set; }
     }
+
+    // Server-side filter for warehouse slot search
+    public sealed class WarehouseSlotSearchFilterDto
+    {
+        public string SiteCode { get; set; }
+        public string FactoryCode { get; set; }
+        public string WarehouseCode { get; set; }
+
+        public string LabelSubstring { get; set; }
+        public string CarMakeName { get; set; }
+        public string CarName { get; set; }
+        public string BatteryMakeName { get; set; }
+        public string ReleaseYear { get; set; }
+        public string BatteryTypeName { get; set; }
+        public string Grade { get; set; }
+
+        // Optional range on CollectDate. Expected format in DB is comparable string (e.g., yyyyMMdd or yyyyMMddHHmmss)
+        public System.DateTime? StartCollectDate { get; set; }
+        public System.DateTime? EndCollectDate { get; set; }
+    }
 }

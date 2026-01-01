@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Domain;
-using System;
 
 namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
 {
@@ -13,10 +12,9 @@ namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
         /// </summary>
         Task<IReadOnlyList<SlotInfoDto>> GetWarehouseSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken));
 
-        [Obsolete("Use GetWarehouseSlotsAsync instead.")]
-        Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken));
-
-        [Obsolete("Use GetWarehouseSlotsAsync instead.")]
-        Task<IReadOnlyList<SlotInfoDto>> GetLoadingSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken));
+        /// <summary>
+        /// Server-side filtered search (can be optimized to push filters into EF query when needed).
+        /// </summary>
+        Task<IReadOnlyList<SlotInfoDto>> SearchWarehouseSlotsAsync(WarehouseSlotSearchFilterDto filter, CancellationToken ct = default(CancellationToken));
     }
 }

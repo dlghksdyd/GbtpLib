@@ -216,13 +216,13 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<IQltBtrInoutInspRepository> _inoutInspectionRepo;
 
             // 공개 UseCases (Lazy 초기화)
-            private readonly Lazy<LoginUseCase> _login;
-            private readonly Lazy<GetCodeUseCase> _getCode;
+            private readonly Lazy<LoginUseCases> _login;
+            private readonly Lazy<GetCodeUseCases> _getCode;
             private readonly Lazy<MetadataUseCases> _metadataUseCases;
             private readonly Lazy<WarehouseSlotUseCases> _warehouseSlotUseCases;
             private readonly Lazy<WarehouseSlotSearchUseCases> _warehouseSlotSearchUseCases;
-            private readonly Lazy<GradeLookupUseCase> _gradeLookup;
-            private readonly Lazy<FilterMetadataUseCase> _filterMetadata;
+            private readonly Lazy<GradeLookupUseCases> _gradeLookup;
+            private readonly Lazy<FilterMetadataUseCases> _filterMetadata;
             private readonly Lazy<InterfaceCommandUseCases> _interfaceCommandUseCases;
             private readonly Lazy<LabelManagementUseCases> _labelManagementUseCases;
             private readonly Lazy<InoutInspectionUseCases> _inoutInspectionUseCases;
@@ -230,13 +230,13 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<StoredProcCommandUseCases> _storedProcCommandUseCases;
 
             // 공개 접근자 (Lazy.Value 반환)
-            public LoginUseCase Login { get { return _login.Value; } }
-            public GetCodeUseCase GetCode { get { return _getCode.Value; } }
+            public LoginUseCases Login { get { return _login.Value; } }
+            public GetCodeUseCases GetCode { get { return _getCode.Value; } }
             public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
             public WarehouseSlotUseCases Slots { get { return _warehouseSlotUseCases.Value; } }
             public WarehouseSlotSearchUseCases SlotSearch { get { return _warehouseSlotSearchUseCases.Value; } }
-            public GradeLookupUseCase GradeLookup { get { return _gradeLookup.Value; } }
-            public FilterMetadataUseCase FilterMetadata { get { return _filterMetadata.Value; } }
+            public GradeLookupUseCases GradeLookup { get { return _gradeLookup.Value; } }
+            public FilterMetadataUseCases FilterMetadata { get { return _filterMetadata.Value; } }
             public InterfaceCommandUseCases InterfaceCommands { get { return _interfaceCommandUseCases.Value; } }
             public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
             public InoutInspectionUseCases InoutInspection { get { return _inoutInspectionUseCases.Value; } }
@@ -268,13 +268,13 @@ namespace GbtpLib.Mssql.Application.Services
                     _inoutInspectionRepo = new Lazy<IQltBtrInoutInspRepository>(() => new QltBtrInoutInspRepository(_db), LazyThreadSafetyMode.None);
 
                     // usecases (지연 생성)
-                    _login = new Lazy<LoginUseCase>(() => new LoginUseCase(_users.Value), LazyThreadSafetyMode.None);
-                    _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);
+                    _login = new Lazy<LoginUseCases>(() => new LoginUseCases(_users.Value), LazyThreadSafetyMode.None);
+                    _getCode = new Lazy<GetCodeUseCases>(() => new GetCodeUseCases(_codes.Value), LazyThreadSafetyMode.None);
                     _metadataUseCases = new Lazy<MetadataUseCases>(() => new MetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotUseCases = new Lazy<WarehouseSlotUseCases>(() => new WarehouseSlotUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotSearchUseCases = new Lazy<WarehouseSlotSearchUseCases>(() => new WarehouseSlotSearchUseCases(_slots.Value), LazyThreadSafetyMode.None);
-                    _gradeLookup = new Lazy<GradeLookupUseCase>(() => new GradeLookupUseCase(_inspection.Value), LazyThreadSafetyMode.None);
-                    _filterMetadata = new Lazy<FilterMetadataUseCase>(() => new FilterMetadataUseCase(_metadata.Value), LazyThreadSafetyMode.None);
+                    _gradeLookup = new Lazy<GradeLookupUseCases>(() => new GradeLookupUseCases(_inspection.Value), LazyThreadSafetyMode.None);
+                    _filterMetadata = new Lazy<FilterMetadataUseCases>(() => new FilterMetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
                     _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);
                     _labelManagementUseCases = new Lazy<LabelManagementUseCases>(() => new LabelManagementUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value), LazyThreadSafetyMode.None);
                     _inoutInspectionUseCases = new Lazy<InoutInspectionUseCases>(() => new InoutInspectionUseCases(_inspection.Value), LazyThreadSafetyMode.None);

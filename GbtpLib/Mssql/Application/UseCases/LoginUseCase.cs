@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using System.Diagnostics;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -13,11 +14,11 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// Exceptions are propagated.
     /// </para>
     /// </summary>
-    public class LoginUseCase
+    public class LoginUseCases
     {
         private readonly IMstUserInfoRepository _repo;
 
-        public LoginUseCase(IMstUserInfoRepository repo)
+        public LoginUseCases(IMstUserInfoRepository repo)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
@@ -27,16 +28,21 @@ namespace GbtpLib.Mssql.Application.UseCases
         /// </summary>
         public async Task<(bool success, bool isAdmin)> LoginAsync(string userId, string password, CancellationToken ct = default)
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"Login start user={userId}");
                 var user = await _repo.GetByIdPasswordAsync(userId, password, ct).ConfigureAwait(false);
-                if (user == null) return (false, false);
+                if (user == null) { sw.Stop(); AppLog.Info($"Login done user={userId}, success=false, elapsedMs={sw.ElapsedMilliseconds}"); return (false, false); }
                 var isAdmin = string.Equals(user.UserGroupCode, "ADMN", System.StringComparison.OrdinalIgnoreCase);
+                sw.Stop();
+                AppLog.Info($"Login done user={userId}, success=true, isAdmin={isAdmin}, elapsedMs={sw.ElapsedMilliseconds}");
                 return (true, isAdmin);
             }
             catch (Exception ex)
             {
-                AppLog.Error("LoginUseCase.LoginAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"Login error user={userId}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }

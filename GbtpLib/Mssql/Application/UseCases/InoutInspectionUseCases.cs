@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using System.Diagnostics;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -29,13 +30,19 @@ namespace GbtpLib.Mssql.Application.UseCases
             string labelId,
             CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
-                return await _queries.GetInoutInspectionInfosAsync(siteCode, factoryCode, processCode, machineCode, inspKindGroupCode, inspKindCode, labelId, ct).ConfigureAwait(false);
+                AppLog.Trace($"GetInspectionInfos start site={siteCode}, factory={factoryCode}");
+                var list = await _queries.GetInoutInspectionInfosAsync(siteCode, factoryCode, processCode, machineCode, inspKindGroupCode, inspKindCode, labelId, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"GetInspectionInfos done site={siteCode}, factory={factoryCode}, count={(list?.Count ?? 0)}, elapsedMs={sw.ElapsedMilliseconds}");
+                return list;
             }
             catch (Exception ex)
             {
-                AppLog.Error("InoutInspectionUseCases.GetInspectionInfosAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"GetInspectionInfos error site={siteCode}, factory={factoryCode}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }

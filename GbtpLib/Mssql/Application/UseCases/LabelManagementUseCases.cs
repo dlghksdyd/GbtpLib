@@ -6,6 +6,7 @@ using GbtpLib.Mssql.Domain;
 using GbtpLib.Mssql.Persistence.Entities;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using System.Diagnostics;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -34,28 +35,38 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Basic create/delete
         public async Task<bool> CreateLabelAsync(MstBtrEntity entity, CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace("CreateLabel start");
                 var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"CreateLabel done rows={affected}, elapsedMs={sw.ElapsedMilliseconds}");
                 return affected > 0;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.CreateLabelAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"CreateLabel error elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
 
         public async Task<bool> DeleteLabelAsync(string labelId, CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"DeleteLabel start label={labelId}");
                 var affected = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"DeleteLabel done label={labelId}, rows={affected}, elapsedMs={sw.ElapsedMilliseconds}");
                 return affected > 0;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.DeleteLabelAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"DeleteLabel error label={labelId}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
@@ -76,22 +87,29 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Create and assign slot
         public async Task<bool> CreateLabelAndAssignSlotAsync(MstBtrEntity label, WarehouseSlotUpdateDto slot, CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"CreateLabelAndAssignSlot start label={label?.LabelId}");
                 var ins = await _btrRepo.InsertAsync(label, ct).ConfigureAwait(false);
-                if (ins < 1) return false;
+                if (ins < 1) { sw.Stop(); AppLog.Info($"CreateLabelAndAssignSlot done label={label?.LabelId}, rows=0, elapsedMs={sw.ElapsedMilliseconds}"); return false; }
 
                 var upd = await _whRepo.UpdateLabelAndGradeAsync(slot, ct).ConfigureAwait(false);
                 if (upd < 1)
                 {
                     try { await _btrRepo.DeleteAsync(label.LabelId, ct).ConfigureAwait(false); } catch { }
+                    sw.Stop();
+                    AppLog.Info($"CreateLabelAndAssignSlot rollback label={label?.LabelId}, elapsedMs={sw.ElapsedMilliseconds}");
                     return false;
                 }
+                sw.Stop();
+                AppLog.Info($"CreateLabelAndAssignSlot done label={label?.LabelId}, rows={ins + upd}, elapsedMs={sw.ElapsedMilliseconds}");
                 return true;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.CreateLabelAndAssignSlotAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"CreateLabelAndAssignSlot error label={label?.LabelId}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
@@ -99,17 +117,22 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Delete flow (delete + clear slots)
         public async Task<bool> DeleteLabelFlowAsync(string labelId, string siteCode = null, string factoryCode = null, string warehouseCode = null, CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"DeleteLabelFlow start label={labelId}");
                 var del = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
-                if (del < 1) return false;
+                if (del < 1) { sw.Stop(); AppLog.Info($"DeleteLabelFlow done label={labelId}, rows=0, elapsedMs={sw.ElapsedMilliseconds}"); return false; }
 
                 await _whRepo.ClearLabelByLabelIdAsync(labelId, siteCode, factoryCode, warehouseCode, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"DeleteLabelFlow done label={labelId}, rows={del}, elapsedMs={sw.ElapsedMilliseconds}");
                 return true;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.DeleteLabelFlowAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"DeleteLabelFlow error label={labelId}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
@@ -117,13 +140,19 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Metadata for label creation UI
         public async Task<IReadOnlyList<LabelCreationInfoDto>> GetLabelCreationMetadataAsync(CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
-                return await _labelQueries.GetLabelCreationInfosAsync(ct).ConfigureAwait(false);
+                AppLog.Trace("GetLabelCreationMetadata start");
+                var list = await _labelQueries.GetLabelCreationInfosAsync(ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"GetLabelCreationMetadata done count={(list?.Count ?? 0)}, elapsedMs={sw.ElapsedMilliseconds}");
+                return list;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.GetLabelCreationMetadataAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"GetLabelCreationMetadata error elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
@@ -131,24 +160,31 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Validation + create (mirrors LabelCreationUseCase)
         public async Task<string> GetPackModuleCodeAsync(int batteryTypeNo, CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"GetPackModuleCode start typeNo={batteryTypeNo}");
                 var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"GetPackModuleCode done typeNo={batteryTypeNo}, elapsedMs={sw.ElapsedMilliseconds}");
                 return type?.PackModuleCode;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.GetPackModuleCodeAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"GetPackModuleCode error typeNo={batteryTypeNo}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
 
         public async Task<bool> CreateWithValidationAsync(string labelId, int batteryTypeNo, string packModuleCode, string siteCode, string collectDate, string collectReason, CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"CreateWithValidation start label={labelId}, typeNo={batteryTypeNo}");
                 var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
-                if (type == null) return false;
+                if (type == null) { sw.Stop(); AppLog.Info($"CreateWithValidation done label={labelId}, rows=0, elapsedMs={sw.ElapsedMilliseconds}"); return false; }
 
                 var entity = new MstBtrEntity
                 {
@@ -168,11 +204,14 @@ namespace GbtpLib.Mssql.Application.UseCases
                 };
 
                 var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"CreateWithValidation done label={labelId}, rows={affected}, elapsedMs={sw.ElapsedMilliseconds}");
                 return affected > 0;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.CreateWithValidationAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"CreateWithValidation error label={labelId}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
@@ -180,14 +219,19 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Set print flag
         public async Task<bool> SetPrintedAsync(string labelId, CancellationToken ct = default(CancellationToken))
         {
+            var sw = Stopwatch.StartNew();
             try
             {
+                AppLog.Trace($"SetPrinted start label={labelId}");
                 var affected = await _btrRepo.UpdatePrintYnAsync(labelId, "Y", ct).ConfigureAwait(false);
+                sw.Stop();
+                AppLog.Info($"SetPrinted done label={labelId}, rows={affected}, elapsedMs={sw.ElapsedMilliseconds}");
                 return affected > 0;
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.SetPrintedAsync failed.", ex);
+                sw.Stop();
+                AppLog.Error($"SetPrinted error label={labelId}, elapsedMs={sw.ElapsedMilliseconds}", ex);
                 throw;
             }
         }
