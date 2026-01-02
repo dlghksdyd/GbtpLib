@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using GbtpLib.Mssql.Domain; // CodeNameDto
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -21,6 +22,19 @@ namespace GbtpLib.Mssql.Application.UseCases
             _queries = queries ?? throw new ArgumentNullException(nameof(queries));
         }
 
+        public async Task<IReadOnlyList<string>> GetGradeNamesAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                await Task.Yield();
+                return new List<string>();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("FilterMetadataUseCase.GetGradeNamesAsync failed.", ex);
+                throw;
+            }
+        }
         public async Task<IReadOnlyList<string>> GetCarMakeNamesAsync(CancellationToken ct = default(CancellationToken))
         {
             try { var list = await _queries.GetCarMakeNamesAsync(ct).ConfigureAwait(false); return list; }
@@ -45,6 +59,19 @@ namespace GbtpLib.Mssql.Application.UseCases
         {
             try { var list = await _queries.GetReleaseYearsAsync(ct).ConfigureAwait(false); return list; }
             catch (Exception ex) { AppLog.Error("FilterMetadataUseCase.GetReleaseYearsAsync failed.", ex); throw; }
+        }
+        public async Task<IReadOnlyList<CodeNameDto>> GetBatteryTypesWithYearAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                await Task.Yield();
+                return new List<CodeNameDto>();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("FilterMetadataUseCase.GetBatteryTypesWithYearAsync failed.", ex);
+                throw;
+            }
         }
     }
 }

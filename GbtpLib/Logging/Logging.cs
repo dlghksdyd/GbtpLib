@@ -48,7 +48,7 @@ using System.Collections.Concurrent;
 
 출력 형식
 - Debug 출력: [LEVEL] yyyy-MM-dd HH:mm:ss.fff [Class.Member] 메시지 Exception
-- CSV 컬럼: Time,Level,Class,Member,Message,Exception (Time은 한국 시간 KST, ISO-8601 오프셋 +09:00 포함)
+- CSV 컬럼: Time,Lvl,Class,Member,Message,Exception (Time은 한국 시간 KST, ISO-8601 오프셋 +09:00 포함)
 
 기타
 - CallerMemberName/CallerFilePath 특성으로 멤버/클래스 정보가 자동으로 채워집니다.
@@ -357,7 +357,7 @@ namespace GbtpLib.Logging
     /// </summary>
     internal sealed class CsvRollingFileLogger : ILogger, IDisposable
     {
-        private const string CsvHeader = "Time,Level,Class,Member,Message,Exception";
+        private const string CsvHeader = "Time,Lvl,Class,Member,Message,Exception";
 
         private static readonly Regex PlaceholderWithIndex = new Regex(@"\{0:([^}]+)\}", RegexOptions.CultureInvariant | RegexOptions.Compiled);
         private static readonly Regex PlaceholderWithoutIndex = new Regex(@"\{([^}:]+(?:[^}]*)?)\}", RegexOptions.CultureInvariant | RegexOptions.Compiled);

@@ -24,7 +24,7 @@ namespace GbtpLib.Mssql.Domain
     {
         public int Row { get; set; }
         public int Col { get; set; }
-        public int Level { get; set; }
+        public int Lvl { get; set; }
         public string LabelId { get; set; }
         public string InspectGrade { get; set; }
         public string SiteName { get; set; }

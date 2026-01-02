@@ -70,7 +70,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 {
                     Row = SafeParseInt(x.inv.Row),
                     Col = SafeParseInt(x.inv.Col),
-                    Level = SafeParseInt(x.inv.Level),
+                    Lvl = SafeParseInt(x.inv.Level),
                     LabelId = x.inv.LabelId,
                     InspectGrade = x.insp != null ? x.insp.InspectGrade : null,
                     SiteName = x.site != null ? x.site.SiteName : null,
