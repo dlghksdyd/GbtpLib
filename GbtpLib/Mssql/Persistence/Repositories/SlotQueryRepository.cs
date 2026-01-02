@@ -65,12 +65,13 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                            && (btr == null || btr.UseYn == "Y")
                         select new { inv, insp, site, btr, btrType, carMake, car, btrMake };
 
-            var list = await query
-                .Select(x => new SlotInfoDto
+            // Project only EF-translatable members in SQL, then convert types in memory
+            var rawList = await query
+                .Select(x => new
                 {
-                    Row = SafeParseInt(x.inv.Row),
-                    Col = SafeParseInt(x.inv.Col),
-                    Lvl = SafeParseInt(x.inv.Level),
+                    Row = x.inv.Row,
+                    Col = x.inv.Col,
+                    Lvl = x.inv.Level,
                     LabelId = x.inv.LabelId,
                     InspectGrade = x.insp != null ? x.insp.InspectGrade : null,
                     SiteName = x.site != null ? x.site.SiteName : null,
@@ -85,6 +86,24 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 })
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
+
+            var list = rawList.Select(r => new SlotInfoDto
+            {
+                Row = SafeParseInt(r.Row),
+                Col = SafeParseInt(r.Col),
+                Lvl = SafeParseInt(r.Lvl),
+                LabelId = r.LabelId,
+                InspectGrade = r.InspectGrade,
+                SiteName = r.SiteName,
+                CollectDate = r.CollectDate,
+                CollectReason = r.CollectReason,
+                PackModuleCode = r.PackModuleCode,
+                BatteryTypeName = r.BatteryTypeName,
+                CarReleaseYear = r.CarReleaseYear,
+                CarMakeName = r.CarMakeName,
+                CarName = r.CarName,
+                BatteryMakeName = r.BatteryMakeName,
+            }).ToList();
 
             return list;
         }

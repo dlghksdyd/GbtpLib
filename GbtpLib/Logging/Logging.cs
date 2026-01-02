@@ -212,15 +212,40 @@ namespace GbtpLib.Logging
         }
 
         public static void Trace(string message, Exception ex = null, [CallerMemberName] string memberName = null, [CallerFilePath] string sourceFilePath = null)
-            => Current.Trace(message, ex, memberName, sourceFilePath);
+        {
+            // Debug 출력도 항상 수행
+            System.Diagnostics.Debug.WriteLine(LogFormatting.FormatStructuredLine("TRACE", message, ex, memberName, sourceFilePath));
+            if (!string.IsNullOrWhiteSpace(_name))
+                Current.Trace(message, ex, memberName, sourceFilePath);
+        }
         public static void Info(string message, Exception ex = null, [CallerMemberName] string memberName = null, [CallerFilePath] string sourceFilePath = null)
-            => Current.Info(message, ex, memberName, sourceFilePath);
+        {
+            // Debug 출력도 항상 수행
+            System.Diagnostics.Debug.WriteLine(LogFormatting.FormatStructuredLine("INFO", message, ex, memberName, sourceFilePath));
+            if (!string.IsNullOrWhiteSpace(_name))
+                Current.Info(message, ex, memberName, sourceFilePath);
+        }
         public static void Warn(string message, Exception ex = null, [CallerMemberName] string memberName = null, [CallerFilePath] string sourceFilePath = null)
-            => Current.Warn(message, ex, memberName, sourceFilePath);
+        {
+            // Debug 출력도 항상 수행
+            System.Diagnostics.Debug.WriteLine(LogFormatting.FormatStructuredLine("WARN", message, ex, memberName, sourceFilePath));
+            if (!string.IsNullOrWhiteSpace(_name))
+                Current.Warn(message, ex, memberName, sourceFilePath);
+        }
         public static void Error(string message, Exception ex = null, [CallerMemberName] string memberName = null, [CallerFilePath] string sourceFilePath = null)
-            => Current.Error(message, ex, memberName, sourceFilePath);
+        {
+            // Debug 출력도 항상 수행
+            System.Diagnostics.Debug.WriteLine(LogFormatting.FormatStructuredLine("ERROR", message, ex, memberName, sourceFilePath));
+            if (!string.IsNullOrWhiteSpace(_name))
+                Current.Error(message, ex, memberName, sourceFilePath);
+        }
         public static void Critical(string message, Exception ex = null, [CallerMemberName] string memberName = null, [CallerFilePath] string sourceFilePath = null)
-            => Current.Critical(message, ex, memberName, sourceFilePath);
+        {
+            // Debug 출력도 항상 수행
+            System.Diagnostics.Debug.WriteLine(LogFormatting.FormatStructuredLine("CRITICAL", message, ex, memberName, sourceFilePath));
+            if (!string.IsNullOrWhiteSpace(_name))
+                Current.Critical(message, ex, memberName, sourceFilePath);
+        }
     }
 
     #endregion
