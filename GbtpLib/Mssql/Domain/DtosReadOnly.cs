@@ -36,6 +36,13 @@ namespace GbtpLib.Mssql.Domain
         public string CarMakeName { get; set; }
         public string CarName { get; set; }
         public string BatteryMakeName { get; set; }
+        // Added fields for UI/logic
+        public string StoreDiv { get; set; }
+        public string PrintYn { get; set; }
+        public double VoltMaxValue { get; set; }
+        public double VoltMinValue { get; set; }
+        public double AcirMaxValue { get; set; }
+        public double InsulationMinValue { get; set; }
     }
 
     public class DefectBatteryDto

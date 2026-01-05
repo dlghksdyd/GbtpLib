@@ -9,5 +9,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
         Task<int> UpdateLabelAndGradeAsync(WarehouseSlotUpdateDto dto, CancellationToken cancellationToken = default(CancellationToken));
         Task<int> ClearLabelAsync(WarehouseSlotKeyDto key, CancellationToken cancellationToken = default(CancellationToken));
         Task<int> ClearLabelByLabelIdAsync(string labelId, string siteCode = null, string factoryCode = null, string warehouseCode = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<int> UpdateStoreDivAsync(WarehouseSlotKeyDto key, string storeDiv, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

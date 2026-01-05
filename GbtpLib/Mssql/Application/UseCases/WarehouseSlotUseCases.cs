@@ -46,5 +46,11 @@ namespace GbtpLib.Mssql.Application.UseCases
             try { var affected = await _warehouseRepo.ClearLabelAsync(key, ct).ConfigureAwait(false); return affected > 0; }
             catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.ClearLabelAsync failed.", ex); throw; }
         }
+
+        public async Task<bool> UpdateStoreDivAsync(WarehouseSlotKeyDto key, string storeDiv, CancellationToken ct = default(CancellationToken))
+        {
+            try { var affected = await _warehouseRepo.UpdateStoreDivAsync(key, storeDiv, ct).ConfigureAwait(false); return affected > 0; }
+            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.UpdateStoreDivAsync failed.", ex); throw; }
+        }
     }
 }

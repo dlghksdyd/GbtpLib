@@ -57,12 +57,14 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                     inv.Col,
                     Lvl = inv.Level,
                     inv.LabelId,
+                    inv.StoreDiv,
                     InspectGrade = insp != null ? insp.InspectGrade : null,
                     SiteCode = inv.SiteCode,
                     CollectDate = btr != null ? btr.CollectDate : null,
                     CollectReason = btr != null ? btr.CollectReason : null,
                     PackModuleCode = btr != null ? btr.PackModuleCode : null,
                     BatteryTypeNo = btr != null ? (int?)btr.BatteryTypeNo : null,
+                    PrintYn = btr != null ? btr.PrintYn : null,
                 }
             ).ToListAsync(ct).ConfigureAwait(false);
 
@@ -85,7 +87,11 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                     t.CarReleaseYear,
                     t.CarMakeCode,
                     t.CarCode,
-                    t.BatteryMakeCode
+                    t.BatteryMakeCode,
+                    t.VoltMaxValue,
+                    t.VoltMinValue,
+                    t.AcirMaxValue,
+                    t.InsulMinValue,
                 })
                 .ToListAsync(ct).ConfigureAwait(false);
 
@@ -113,14 +119,14 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             // 4) 최종 DTO 구성 (메모리에서 결합)
             var list = baseRows.Select(r =>
             {
-                string siteName = null;
-                siteDict.TryGetValue(r.SiteCode, out siteName);
+                string siteName = null; siteDict.TryGetValue(r.SiteCode, out siteName);
 
                 string batteryTypeName = null;
                 string carReleaseYear = null;
                 string carMakeName = null;
                 string carName = null;
                 string batteryMakeName = null;
+                double voltMax = 0, voltMin = 0, acirMax = 0, insMin = 0;
 
                 if (r.BatteryTypeNo.HasValue && btrTypeDict.TryGetValue(r.BatteryTypeNo.Value, out var t))
                 {
@@ -129,6 +135,10 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                     if (t.CarMakeCode != null) carMakeDict.TryGetValue(t.CarMakeCode, out carMakeName);
                     if (t.CarCode != null) carDict.TryGetValue(t.CarCode, out carName);
                     if (t.BatteryMakeCode != null) btrMakeDict.TryGetValue(t.BatteryMakeCode, out batteryMakeName);
+                    voltMax = (double?)(t.VoltMaxValue) ?? 0.0;
+                    voltMin = (double?)(t.VoltMinValue) ?? 0.0;
+                    acirMax = (double?)(t.AcirMaxValue) ?? 0.0;
+                    insMin = (double?)(t.InsulMinValue) ?? 0.0;
                 }
 
                 return new SlotInfoDto
@@ -137,6 +147,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                     Col = SafeParseInt(r.Col),
                     Lvl = SafeParseInt(r.Lvl),
                     LabelId = r.LabelId,
+                    StoreDiv = r.StoreDiv,
                     InspectGrade = r.InspectGrade,
                     SiteName = siteName,
                     CollectDate = r.CollectDate,
@@ -147,6 +158,11 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                     CarMakeName = carMakeName,
                     CarName = carName,
                     BatteryMakeName = batteryMakeName,
+                    PrintYn = r.PrintYn,
+                    VoltMaxValue = voltMax,
+                    VoltMinValue = voltMin,
+                    AcirMaxValue = acirMax,
+                    InsulationMinValue = insMin,
                 };
             }).ToList();
 

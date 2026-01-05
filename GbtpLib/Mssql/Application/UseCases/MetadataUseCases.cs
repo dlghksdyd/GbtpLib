@@ -91,7 +91,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         {
             try { return await _queries.GetInspKindGroupsAsync(ct).ConfigureAwait(false); }
             catch (Exception ex) { AppLog.Error("MetadataUseCases.GetInspKindGroupsAsync failed.", ex); throw; }
-        }
+        } 
 
         /// <summary>
         /// Gets inspection kinds within a group.

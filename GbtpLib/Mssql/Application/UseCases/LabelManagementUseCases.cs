@@ -73,6 +73,20 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
+        public async Task<bool> UpdatePrintYnAsync(string labelId, string printYn, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var affected = await _btrRepo.UpdatePrintYnAsync(labelId, printYn, ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("LabelManagementUseCases.UpdatePrintYnAsync failed.", ex);
+                throw;
+            }
+        }
+
         // Create and assign slot
         public async Task<bool> CreateLabelAndAssignSlotAsync(MstBtrEntity label, WarehouseSlotUpdateDto slot, CancellationToken ct = default(CancellationToken))
         {

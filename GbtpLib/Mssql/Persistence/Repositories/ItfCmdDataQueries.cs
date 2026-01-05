@@ -30,5 +30,18 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
             return list;
         }
+
+        public async Task<IReadOnlyList<ItfCmdDataEntity>> GetPendingByCmdAsync(string cmdCode, CancellationToken ct = default(CancellationToken))
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var list = await _db.Set<ItfCmdDataEntity>()
+                .AsNoTracking()
+                .Where(x => x.CommandCode == cmdCode && x.IfFlag == "C")
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+
+            return list;
+        }
     }
 }

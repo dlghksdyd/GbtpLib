@@ -53,7 +53,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                                        .ConfigureAwait(false);
             if (entity == null) return 0;
 
-            // 이미 비어있다면 반영된 것으로 간주
             if (string.IsNullOrEmpty(entity.LabelId) && string.IsNullOrEmpty(entity.LoadGrade))
             {
                 return 1;
@@ -69,7 +68,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // LabelId is unique; fetch single entity
             var query = _db.Set<InvWarehouseEntity>().AsNoTracking().Where(x => x.LabelId == labelId);
             if (!string.IsNullOrEmpty(siteCode)) query = query.Where(x => x.SiteCode == siteCode);
             if (!string.IsNullOrEmpty(factoryCode)) query = query.Where(x => x.FactoryCode == factoryCode);
@@ -80,7 +78,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                                            .ConfigureAwait(false);
             if (entityKeyOnly == null) return 0;
 
-            // Reattach tracked entity by key to update
             var entity = await _db.Set<InvWarehouseEntity>()
                 .FirstOrDefaultAsync(x => x.SiteCode == entityKeyOnly.SiteCode
                                        && x.FactoryCode == entityKeyOnly.FactoryCode
@@ -91,7 +88,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                                        .ConfigureAwait(false);
             if (entity == null) return 0;
 
-            // If already empty, consider as affected per business rule
             if (string.IsNullOrEmpty(entity.LabelId) && string.IsNullOrEmpty(entity.LoadGrade))
             {
                 return 1;
@@ -100,6 +96,22 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             entity.LabelId = string.Empty;
             entity.LoadGrade = string.Empty;
 
+            return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<int> UpdateStoreDivAsync(WarehouseSlotKeyDto key, string storeDiv, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var entity = await _db.Set<InvWarehouseEntity>()
+                .FirstOrDefaultAsync(x => x.SiteCode == key.SiteCode
+                                       && x.FactoryCode == key.FactoryCode
+                                       && x.WarehouseCode == key.WarehouseCode
+                                       && x.Row == key.Row
+                                       && x.Col == key.Col
+                                       && x.Level == key.Level, cancellationToken)
+                                       .ConfigureAwait(false);
+            if (entity == null) return 0;
+            entity.StoreDiv = storeDiv;
             return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
