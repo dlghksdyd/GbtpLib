@@ -52,7 +52,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error("MetadataUseCases.GetFactoriesAsync failed.", ex);
+                AppLog.Error($"MetadataUseCases.GetFactoriesAsync failed. site={siteCode}", ex);
                 throw;
             }
         }
@@ -63,7 +63,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         public async Task<IReadOnlyList<CodeNameDto>> GetWarehousesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
         {
             try { return await _queries.GetWarehousesAsync(siteCode, factoryCode, ct).ConfigureAwait(false); }
-            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetWarehousesAsync failed.", ex); throw; }
+            catch (Exception ex) { AppLog.Error($"MetadataUseCases.GetWarehousesAsync failed. site={siteCode}, factory={factoryCode}", ex); throw; }
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         public async Task<IReadOnlyList<CodeNameDto>> GetProcessesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
         {
             try { return await _queries.GetProcessesAsync(siteCode, factoryCode, ct).ConfigureAwait(false); }
-            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetProcessesAsync failed.", ex); throw; }
+            catch (Exception ex) { AppLog.Error($"MetadataUseCases.GetProcessesAsync failed. site={siteCode}, factory={factoryCode}", ex); throw; }
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         public async Task<IReadOnlyList<CodeNameDto>> GetMachinesAsync(string siteCode, string factoryCode, CancellationToken ct = default(CancellationToken))
         {
             try { return await _queries.GetMachinesAsync(siteCode, factoryCode, ct).ConfigureAwait(false); }
-            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetMachinesAsync failed.", ex); throw; }
+            catch (Exception ex) { AppLog.Error($"MetadataUseCases.GetMachinesAsync failed. site={siteCode}, factory={factoryCode}", ex); throw; }
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace GbtpLib.Mssql.Application.UseCases
         public async Task<IReadOnlyList<CodeNameDto>> GetInspKindsAsync(string inspKindGroupCode, CancellationToken ct = default(CancellationToken))
         {
             try { return await _queries.GetInspKindsAsync(inspKindGroupCode, ct).ConfigureAwait(false); }
-            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetInspKindsAsync failed.", ex); throw; }
+            catch (Exception ex) { AppLog.Error($"MetadataUseCases.GetInspKindsAsync failed. group={inspKindGroupCode}", ex); throw; }
         }
     }
 }

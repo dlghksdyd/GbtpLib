@@ -25,32 +25,72 @@ namespace GbtpLib.Mssql.Application.UseCases
         // Queries (from InitializeSlotsUseCase)
         public async Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
         {
-            try { return await _slotQueries.GetOutcomeWaitSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false); }
-            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.GetOutcomeWaitAsync failed.", ex); throw; }
+            try
+            {
+                var list = await _slotQueries.GetOutcomeWaitSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false);
+                return list ?? Array.Empty<SlotInfoDto>();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"WarehouseSlotUseCases.GetOutcomeWaitAsync failed. site={site}, factory={factory}, warehouse={warehouse}", ex);
+                throw;
+            }
         }
 
         public async Task<IReadOnlyList<SlotInfoDto>> GetLoadingAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
         {
-            try { return await _slotQueries.GetLoadingSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false); }
-            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.GetLoadingAsync failed.", ex); throw; }
+            try
+            {
+                var list = await _slotQueries.GetLoadingSlotsAsync(site, factory, warehouse, ct).ConfigureAwait(false);
+                return list ?? Array.Empty<SlotInfoDto>();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"WarehouseSlotUseCases.GetLoadingAsync failed. site={site}, factory={factory}, warehouse={warehouse}", ex);
+                throw;
+            }
         }
 
         public async Task<bool> SetLabelAsync(WarehouseSlotUpdateDto dto, CancellationToken ct = default(CancellationToken))
         {
-            try { var affected = await _warehouseRepo.UpdateLabelAndGradeAsync(dto, ct).ConfigureAwait(false); return affected > 0; }
-            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.SetLabelAsync failed.", ex); throw; }
+            try
+            {
+                var affected = await _warehouseRepo.UpdateLabelAndGradeAsync(dto, ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"WarehouseSlotUseCases.SetLabelAsync failed. site={dto?.SiteCode}, factory={dto?.FactoryCode}, warehouse={dto?.WarehouseCode}, row={dto?.Row}, col={dto?.Col}, lvl={dto?.Level}, label={dto?.LabelId}", ex);
+                throw;
+            }
         }
 
         public async Task<bool> ClearLabelAsync(WarehouseSlotKeyDto key, CancellationToken ct = default(CancellationToken))
         {
-            try { var affected = await _warehouseRepo.ClearLabelAsync(key, ct).ConfigureAwait(false); return affected > 0; }
-            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.ClearLabelAsync failed.", ex); throw; }
+            try
+            {
+                var affected = await _warehouseRepo.ClearLabelAsync(key, ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"WarehouseSlotUseCases.ClearLabelAsync failed. site={key?.SiteCode}, factory={key?.FactoryCode}, warehouse={key?.WarehouseCode}, row={key?.Row}, col={key?.Col}, lvl={key?.Level}", ex);
+                throw;
+            }
         }
 
         public async Task<bool> UpdateStoreDivAsync(WarehouseSlotKeyDto key, string storeDiv, CancellationToken ct = default(CancellationToken))
         {
-            try { var affected = await _warehouseRepo.UpdateStoreDivAsync(key, storeDiv, ct).ConfigureAwait(false); return affected > 0; }
-            catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.UpdateStoreDivAsync failed.", ex); throw; }
+            try
+            {
+                var affected = await _warehouseRepo.UpdateStoreDivAsync(key, storeDiv, ct).ConfigureAwait(false);
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"WarehouseSlotUseCases.UpdateStoreDivAsync failed. site={key?.SiteCode}, factory={key?.FactoryCode}, warehouse={key?.WarehouseCode}, row={key?.Row}, col={key?.Col}, lvl={key?.Level}, storeDiv={storeDiv}", ex);
+                throw;
+            }
         }
     }
 }

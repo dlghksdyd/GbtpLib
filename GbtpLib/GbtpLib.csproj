@@ -54,6 +54,7 @@
     <Compile Include="Monitoring\AppHealth.cs" />
     <Compile Include="Mssql\Application\Abstractions\IUnitOfWork.cs" />
     <Compile Include="Mssql\Application\Services\MssqlServiceHub.cs" />
+    <Compile Include="Mssql\Application\UseCases\DefectBatteryUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\FilterMetadataUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\GetCodeUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\GradeLookupUseCase.cs" />
@@ -65,7 +66,6 @@
     <Compile Include="Mssql\Application\UseCases\MetadataUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\OutcomeFlowUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\QltBtrInoutInspectionUseCases.cs" />
-    <Compile Include="Mssql\Application\UseCases\UpdateWarehouseSlotUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\WarehouseSlotUseCases.cs" />
     <Compile Include="Mssql\Configuration\DbConnectionSettings.cs" />
     <Compile Include="Mssql\Domain\Dtos.cs" />

@@ -76,7 +76,6 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<GetCodeUseCase> _getCode;
             private readonly Lazy<MetadataUseCases> _metadataUseCases;
             private readonly Lazy<InitializeSlotsUseCase> _initializeSlots;
-            private readonly Lazy<UpdateWarehouseSlotUseCase> _updateWarehouseSlot;
             private readonly Lazy<WarehouseSlotUseCases> _warehouseSlotUseCases;
             private readonly Lazy<GradeLookupUseCase> _gradeLookup;
             private readonly Lazy<OutcomeFlowUseCases> _outcomeFlow;
@@ -84,19 +83,19 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<InterfaceCommandUseCases> _interfaceCommandUseCases;
             private readonly Lazy<LabelManagementUseCases> _labelManagementUseCases;
             private readonly Lazy<QltBtrInoutInspectionUseCases> _inoutInspectionUseCases;
+            private readonly Lazy<DefectBatteryUseCases> _defectUseCases;
 
             public LoginUseCase Login { get { return _login.Value; } }
             public GetCodeUseCase GetCode { get { return _getCode.Value; } }
             public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
             public InitializeSlotsUseCase InitializeSlots { get { return _initializeSlots.Value; } }
-            public UpdateWarehouseSlotUseCase UpdateWarehouseSlot { get { return _updateWarehouseSlot.Value; } }
             public WarehouseSlotUseCases Slots { get { return _warehouseSlotUseCases.Value; } }
             public GradeLookupUseCase GradeLookup { get { return _gradeLookup.Value; } }
             public OutcomeFlowUseCases OutcomeFlow { get { return _outcomeFlow.Value; } }
             public FilterMetadataUseCase FilterMetadata { get { return _filterMetadata.Value; } }
             public InterfaceCommandUseCases InterfaceCommands { get { return _interfaceCommandUseCases.Value; } }
             public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
-            public IDefectBatteryQueries Defects { get { return _defects.Value; } }
+            public DefectBatteryUseCases Defects { get { return _defectUseCases.Value; } }
             public QltBtrInoutInspectionUseCases InoutInspections { get { return _inoutInspectionUseCases.Value; } }
 
             internal Services(IAppDbContext db, IUnitOfWork uow)
@@ -125,7 +124,6 @@ namespace GbtpLib.Mssql.Application.Services
                     _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);
                     _metadataUseCases = new Lazy<MetadataUseCases>(() => new MetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
                     _initializeSlots = new Lazy<InitializeSlotsUseCase>(() => new InitializeSlotsUseCase(_slots.Value), LazyThreadSafetyMode.None);
-                    _updateWarehouseSlot = new Lazy<UpdateWarehouseSlotUseCase>(() => new UpdateWarehouseSlotUseCase(_warehouses.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotUseCases = new Lazy<WarehouseSlotUseCases>(() => new WarehouseSlotUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
                     _gradeLookup = new Lazy<GradeLookupUseCase>(() => new GradeLookupUseCase(_inspection.Value), LazyThreadSafetyMode.None);
                     _outcomeFlow = new Lazy<OutcomeFlowUseCases>(() => new OutcomeFlowUseCases(_slots.Value), LazyThreadSafetyMode.None);
@@ -133,6 +131,7 @@ namespace GbtpLib.Mssql.Application.Services
                     _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);
                     _labelManagementUseCases = new Lazy<LabelManagementUseCases>(() => new LabelManagementUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value), LazyThreadSafetyMode.None);
                     _inoutInspectionUseCases = new Lazy<QltBtrInoutInspectionUseCases>(() => new QltBtrInoutInspectionUseCases(_db), LazyThreadSafetyMode.None);
+                    _defectUseCases = new Lazy<DefectBatteryUseCases>(() => new DefectBatteryUseCases(_defects.Value), LazyThreadSafetyMode.None);
                 }
                 catch (Exception ex)
                 {

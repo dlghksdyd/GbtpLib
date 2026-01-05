@@ -33,7 +33,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error("GradeLookupUseCase.GetLatestGradeAsync failed.", ex);
+                AppLog.Error($"GradeLookupUseCase.GetLatestGradeAsync failed. labelId={labelId}", ex);
                 throw;
             }
         }

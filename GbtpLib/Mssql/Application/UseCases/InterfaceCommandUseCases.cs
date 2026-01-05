@@ -25,7 +25,6 @@ namespace GbtpLib.Mssql.Application.UseCases
             _sp = sp ?? throw new ArgumentNullException(nameof(sp));
         }
 
-        // Common SP execution utilities
         private async Task<bool> ExecuteCommandAsync(EIfCmd cmd, IDictionary<string, object> parameters, CancellationToken ct)
         {
             try
@@ -62,56 +61,110 @@ namespace GbtpLib.Mssql.Application.UseCases
             return dict;
         }
 
-        // Send (enqueue) operations
-        public Task<bool> SendOutcomeToWaitAsync(string label, string row, string col, string lvl, string reqSys, CancellationToken ct = default(CancellationToken))
+        public Task<bool> SendOutcomeToWaitAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            var p = BuildParams(label, row, col, lvl, reqSys: reqSys);
-            return ExecuteCommandAsync(EIfCmd.EE1, p, ct);
+            try
+            {
+                var p = BuildParams(label, row.ToString(), col.ToString(), lvl.ToString(), reqSys: reqSys);
+                return ExecuteCommandAsync(EIfCmd.EE1, p, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"InterfaceCommandUseCases.SendOutcomeToWaitAsync failed. label={label}, row={row}, col={col}, lvl={lvl}", ex);
+                throw;
+            }
         }
 
-        public Task<bool> SendOutcomeAcceptToLoadingAsync(string label, string loadingRow, string loadingCol, string loadingLvl, string reqSys, CancellationToken ct = default(CancellationToken))
+        public Task<bool> SendOutcomeAcceptToLoadingAsync(string label, int loadingRow, int loadingCol, int loadingLvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            var p = BuildParams(label, loadingRow, loadingCol, loadingLvl, reqSys: reqSys);
-            return ExecuteCommandAsync(EIfCmd.EE3, p, ct);
+            try
+            {
+                var p = BuildParams(label, loadingRow.ToString(), loadingCol.ToString(), loadingLvl.ToString(), reqSys: reqSys);
+                return ExecuteCommandAsync(EIfCmd.EE3, p, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"InterfaceCommandUseCases.SendOutcomeAcceptToLoadingAsync failed. label={label}, row={loadingRow}, col={loadingCol}, lvl={loadingLvl}", ex);
+                throw;
+            }
         }
 
-        public Task<bool> SendOutcomeRejectToWaitAsync(string label, string outcomeWaitRow, string outcomeWaitCol, string outcomeWaitLvl, string reqSys, CancellationToken ct = default(CancellationToken))
+        public Task<bool> SendOutcomeRejectToWaitAsync(string label, int outcomeWaitRow, int outcomeWaitCol, int outcomeWaitLvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            var p = BuildParams(label, outcomeWaitRow, outcomeWaitCol, outcomeWaitLvl, reqSys: reqSys);
-            return ExecuteCommandAsync(EIfCmd.EE5, p, ct);
+            try
+            {
+                var p = BuildParams(label, outcomeWaitRow.ToString(), outcomeWaitCol.ToString(), outcomeWaitLvl.ToString(), reqSys: reqSys);
+                return ExecuteCommandAsync(EIfCmd.EE5, p, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"InterfaceCommandUseCases.SendOutcomeRejectToWaitAsync failed. label={label}, row={outcomeWaitRow}, col={outcomeWaitCol}, lvl={outcomeWaitLvl}", ex);
+                throw;
+            }
         }
 
         public Task<bool> SendDefectToLoadingAsync(string label, int defectRow, int defectCol, int defectLvl, int loadingRow, int loadingCol, int loadingLvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            var p = BuildParams(label,
-                defectRow.ToString(), defectCol.ToString(), defectLvl.ToString(),
-                loadingRow.ToString(), loadingCol.ToString(), loadingLvl.ToString(),
-                reqSys: reqSys);
-            return ExecuteCommandAsync(EIfCmd.EE7, p, ct);
+            try
+            {
+                var p = BuildParams(label,
+                    defectRow.ToString(), defectCol.ToString(), defectLvl.ToString(),
+                    loadingRow.ToString(), loadingCol.ToString(), loadingLvl.ToString(),
+                    reqSys: reqSys);
+                return ExecuteCommandAsync(EIfCmd.EE7, p, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"InterfaceCommandUseCases.SendDefectToLoadingAsync failed. label={label}, defectRow={defectRow}, defectCol={defectCol}, defectLvl={defectLvl}, loadingRow={loadingRow}, loadingCol={loadingCol}, loadingLvl={loadingLvl}", ex);
+                throw;
+            }
         }
 
         public Task<bool> SendIncomeAcceptAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            var p = BuildParams(label, row.ToString(), col.ToString(), lvl.ToString(), reqSys: reqSys);
-            return ExecuteCommandAsync(EIfCmd.AA2, p, ct);
+            try
+            {
+                var p = BuildParams(label, row.ToString(), col.ToString(), lvl.ToString(), reqSys: reqSys);
+                return ExecuteCommandAsync(EIfCmd.AA2, p, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"InterfaceCommandUseCases.SendIncomeAcceptAsync failed. label={label}, row={row}, col={col}, lvl={lvl}", ex);
+                throw;
+            }
         }
 
         public Task<bool> SendIncomeRejectAsync(string label, int row, int col, int lvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            var p = BuildParams(label, row.ToString(), col.ToString(), lvl.ToString(), reqSys: reqSys);
-            return ExecuteCommandAsync(EIfCmd.AA4, p, ct);
+            try
+            {
+                var p = BuildParams(label, row.ToString(), col.ToString(), lvl.ToString(), reqSys: reqSys);
+                return ExecuteCommandAsync(EIfCmd.AA4, p, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"InterfaceCommandUseCases.SendIncomeRejectAsync failed. label={label}, row={row}, col={col}, lvl={lvl}", ex);
+                throw;
+            }
         }
 
         public Task<bool> SendMoveToIncomeWaitAsync(int fromRow, int fromCol, int fromLvl, int toRow, int toCol, int toLvl, string reqSys, CancellationToken ct = default(CancellationToken))
         {
-            var p = BuildParams(string.Empty,
-                fromRow.ToString(), fromCol.ToString(), fromLvl.ToString(),
-                toRow.ToString(), toCol.ToString(), toLvl.ToString(),
-                reqSys: reqSys);
-            return ExecuteCommandAsync(EIfCmd.AA0, p, ct);
+            try
+            {
+                var p = BuildParams(string.Empty,
+                    fromRow.ToString(), fromCol.ToString(), fromLvl.ToString(),
+                    toRow.ToString(), toCol.ToString(), toLvl.ToString(),
+                    reqSys: reqSys);
+                return ExecuteCommandAsync(EIfCmd.AA0, p, ct);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"InterfaceCommandUseCases.SendMoveToIncomeWaitAsync failed. fromRow={fromRow}, fromCol={fromCol}, fromLvl={fromLvl}, toRow={toRow}, toCol={toCol}, toLvl={toLvl}", ex);
+                throw;
+            }
         }
 
-        // Acknowledge and polling
         public async Task<bool> AcknowledgeAsync(EIfCmd cmd, string data1, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -121,7 +174,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error("InterfaceCommandUseCases.AcknowledgeAsync failed.", ex);
+                AppLog.Error($"InterfaceCommandUseCases.AcknowledgeAsync failed. cmd={cmd}, data1={data1}", ex);
                 throw;
             }
         }
@@ -137,7 +190,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error("InterfaceCommandUseCases.WaitAndAcknowledgeAsync failed.", ex);
+                AppLog.Error($"InterfaceCommandUseCases.WaitAndAcknowledgeAsync failed. cmd={cmdToWait}, data1={data1}", ex);
                 throw;
             }
         }
@@ -157,7 +210,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error("InterfaceCommandUseCases.WaitAndAcknowledgeByCmdAsync failed.", ex);
+                AppLog.Error($"InterfaceCommandUseCases.WaitAndAcknowledgeByCmdAsync failed. cmd={cmdToWait}", ex);
                 throw;
             }
         }
