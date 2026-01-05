@@ -70,6 +70,7 @@
     <Compile Include="Mssql\Domain\Dtos.cs" />
     <Compile Include="Mssql\Domain\Enums.cs" />
     <Compile Include="Mssql\Domain\DtosReadOnly.cs" />
+    <Compile Include="Mssql\Domain\GradeClassBatteryDbDto.cs" />
     <Compile Include="Mssql\Persistence\Abstractions\IAppDbContext.cs" />
     <Compile Include="Mssql\Persistence\Abstractions\IAppDbContextFactory.cs" />
     <Compile Include="Mssql\Persistence\Configurations\InvWarehouseConfiguration.cs" />
@@ -191,6 +192,7 @@
     <None Include="Reference\OutcomeSystem\LoginViewModel.cs" />
     <None Include="Reference\OutcomeSystem\OutcomeWaitBatteryViewModel.cs" />
     <None Include="Reference\OutcomeSystem\RepoMain.cs" />
+    <None Include="Reference\OutcomeSystem\GradeClassBatterySearchViewModel.cs" />
     <Compile Include="User\UserContext.cs" />
   </ItemGroup>
   <ItemGroup />

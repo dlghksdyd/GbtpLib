@@ -33,79 +33,187 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         {
             ct.ThrowIfCancellationRequested();
 
-            // Latest inspect seq per label where diag status = 'Y'
-            var latest = _db.Set<QltBtrInspEntity>().AsNoTracking()
-                .Where(q => q.BatteryDiagStatus == "Y")
-                .GroupBy(q => q.LabelId)
-                .Select(g => new { LabelId = g.Key, InspectSeq = g.Max(x => x.InspectSeq) });
+            var inspSrc = _db.Set<QltBtrInspEntity>().AsNoTracking().Where(q => q.BatteryDiagStatus == "Y");
 
-            var query = from inv in _db.Set<InvWarehouseEntity>().AsNoTracking()
-                        // left join latest inspection key on label
-                        join li in latest on inv.LabelId equals li.LabelId into liJoin
-                        from li in liJoin.DefaultIfEmpty()
-                        // left join actual inspection row matching latest key
-                        join inspAll in _db.Set<QltBtrInspEntity>().AsNoTracking() on new { inv.LabelId, InspectSeq = (string)li.InspectSeq } equals new { inspAll.LabelId, inspAll.InspectSeq } into inspJoin
-                        from insp in inspJoin.DefaultIfEmpty()
-                        // other left joins
-                        join site in _db.Set<MstSiteEntity>().AsNoTracking() on inv.SiteCode equals site.SiteCode into siteJoin
-                        from site in siteJoin.DefaultIfEmpty()
-                        join btr in _db.Set<MstBtrEntity>().AsNoTracking() on inv.LabelId equals btr.LabelId into btrJoin
-                        from btr in btrJoin.DefaultIfEmpty()
-                        join btrType in _db.Set<MstBtrTypeEntity>().AsNoTracking() on btr.BatteryTypeNo equals btrType.BatteryTypeNo into btrTypeJoin
-                        from btrType in btrTypeJoin.DefaultIfEmpty()
-                        join carMake in _db.Set<MstCarMakeEntity>().AsNoTracking() on btrType.CarMakeCode equals carMake.CarMakeCode into carMakeJoin
-                        from carMake in carMakeJoin.DefaultIfEmpty()
-                        join car in _db.Set<MstCarEntity>().AsNoTracking() on btrType.CarCode equals car.CarCode into carJoin
-                        from car in carJoin.DefaultIfEmpty()
-                        join btrMake in _db.Set<MstBtrMakeEntity>().AsNoTracking() on btrType.BatteryMakeCode equals btrMake.BatteryMakeCode into btrMakeJoin
-                        from btrMake in btrMakeJoin.DefaultIfEmpty()
-                        where inv.SiteCode == siteCode
-                           && inv.FactoryCode == factCode
-                           && inv.WarehouseCode == whCode
-                           && (btr == null || btr.UseYn == "Y")
-                        select new { inv, insp, site, btr, btrType, carMake, car, btrMake };
-
-            // Project only EF-translatable members in SQL, then convert types in memory
-            var rawList = await query
-                .Select(x => new
+            // 1) 기본 데이터만 먼저 가져오기 (큰 테이블 조인 최소화)
+            var baseRows = await (
+                from inv in _db.Set<InvWarehouseEntity>().AsNoTracking()
+                join btr in _db.Set<MstBtrEntity>().AsNoTracking() on inv.LabelId equals btr.LabelId into btrJoin
+                from btr in btrJoin.DefaultIfEmpty()
+                // latest inspection per label via GroupJoin + Take(1)
+                join insp1 in inspSrc on inv.LabelId equals insp1.LabelId into inspJoin
+                from insp in inspJoin
+                    .OrderByDescending(i => i.InspectSeq)
+                    .Take(1)
+                    .DefaultIfEmpty()
+                where inv.SiteCode == siteCode
+                   && inv.FactoryCode == factCode
+                   && inv.WarehouseCode == whCode
+                   && (btr == null || btr.UseYn == "Y")
+                orderby inv.Row, inv.Col, inv.Level // Keep ordering identical to INV_WAREHOUSE logical order
+                select new
                 {
-                    Row = x.inv.Row,
-                    Col = x.inv.Col,
-                    Lvl = x.inv.Level,
-                    LabelId = x.inv.LabelId,
-                    InspectGrade = x.insp != null ? x.insp.InspectGrade : null,
-                    SiteName = x.site != null ? x.site.SiteName : null,
-                    CollectDate = x.btr != null ? x.btr.CollectDate : null,
-                    CollectReason = x.btr != null ? x.btr.CollectReason : null,
-                    PackModuleCode = x.btr != null ? x.btr.PackModuleCode : null,
-                    BatteryTypeName = x.btrType != null ? x.btrType.BatteryTypeName : null,
-                    CarReleaseYear = x.btrType != null ? x.btrType.CarReleaseYear : null,
-                    CarMakeName = x.carMake != null ? x.carMake.CarMakeName : null,
-                    CarName = x.car != null ? x.car.CarName : null,
-                    BatteryMakeName = x.btrMake != null ? x.btrMake.BatteryMakeName : null,
-                })
-                .ToListAsync(ct)
-                .ConfigureAwait(false);
+                    inv.Row,
+                    inv.Col,
+                    Lvl = inv.Level,
+                    inv.LabelId,
+                    InspectGrade = insp != null ? insp.InspectGrade : null,
+                    SiteCode = inv.SiteCode,
+                    CollectDate = btr != null ? btr.CollectDate : null,
+                    CollectReason = btr != null ? btr.CollectReason : null,
+                    PackModuleCode = btr != null ? btr.PackModuleCode : null,
+                    BatteryTypeNo = btr != null ? (int?)btr.BatteryTypeNo : null,
+                }
+            ).ToListAsync(ct).ConfigureAwait(false);
 
-            var list = rawList.Select(r => new SlotInfoDto
+            // 2) 조회에 필요한 키 집합 추출
+            var siteCodes = baseRows.Select(r => r.SiteCode).Where(s => s != null).Distinct().ToList();
+            var typeNos = baseRows.Select(r => r.BatteryTypeNo).Where(n => n.HasValue).Select(n => n.Value).Distinct().ToList();
+
+            // 3) 작은 Lookup 테이블을 개별 조회하여 메모리 딕셔너리 구성
+            var siteDict = await _db.Set<MstSiteEntity>().AsNoTracking()
+                .Where(s => siteCodes.Contains(s.SiteCode))
+                .Select(s => new { s.SiteCode, s.SiteName })
+                .ToDictionaryAsync(x => x.SiteCode, x => x.SiteName, ct).ConfigureAwait(false);
+
+            var btrTypes = await _db.Set<MstBtrTypeEntity>().AsNoTracking()
+                .Where(t => typeNos.Contains(t.BatteryTypeNo))
+                .Select(t => new
+                {
+                    t.BatteryTypeNo,
+                    t.BatteryTypeName,
+                    t.CarReleaseYear,
+                    t.CarMakeCode,
+                    t.CarCode,
+                    t.BatteryMakeCode
+                })
+                .ToListAsync(ct).ConfigureAwait(false);
+
+            var carMakeCodes = btrTypes.Select(t => t.CarMakeCode).Where(c => c != null).Distinct().ToList();
+            var carCodes = btrTypes.Select(t => t.CarCode).Where(c => c != null).Distinct().ToList();
+            var btrMakeCodes = btrTypes.Select(t => t.BatteryMakeCode).Where(c => c != null).Distinct().ToList();
+
+            var btrTypeDict = btrTypes.ToDictionary(t => t.BatteryTypeNo, t => t);
+
+            var carMakeDict = await _db.Set<MstCarMakeEntity>().AsNoTracking()
+                .Where(c => carMakeCodes.Contains(c.CarMakeCode))
+                .Select(c => new { c.CarMakeCode, c.CarMakeName })
+                .ToDictionaryAsync(x => x.CarMakeCode, x => x.CarMakeName, ct).ConfigureAwait(false);
+
+            var carDict = await _db.Set<MstCarEntity>().AsNoTracking()
+                .Where(c => carCodes.Contains(c.CarCode))
+                .Select(c => new { c.CarCode, c.CarName })
+                .ToDictionaryAsync(x => x.CarCode, x => x.CarName, ct).ConfigureAwait(false);
+
+            var btrMakeDict = await _db.Set<MstBtrMakeEntity>().AsNoTracking()
+                .Where(m => btrMakeCodes.Contains(m.BatteryMakeCode))
+                .Select(m => new { m.BatteryMakeCode, m.BatteryMakeName })
+                .ToDictionaryAsync(x => x.BatteryMakeCode, x => x.BatteryMakeName, ct).ConfigureAwait(false);
+
+            // 4) 최종 DTO 구성 (메모리에서 결합)
+            var list = baseRows.Select(r =>
             {
-                Row = SafeParseInt(r.Row),
-                Col = SafeParseInt(r.Col),
-                Lvl = SafeParseInt(r.Lvl),
-                LabelId = r.LabelId,
-                InspectGrade = r.InspectGrade,
-                SiteName = r.SiteName,
-                CollectDate = r.CollectDate,
-                CollectReason = r.CollectReason,
-                PackModuleCode = r.PackModuleCode,
-                BatteryTypeName = r.BatteryTypeName,
-                CarReleaseYear = r.CarReleaseYear,
-                CarMakeName = r.CarMakeName,
-                CarName = r.CarName,
-                BatteryMakeName = r.BatteryMakeName,
+                string siteName = null;
+                siteDict.TryGetValue(r.SiteCode, out siteName);
+
+                string batteryTypeName = null;
+                string carReleaseYear = null;
+                string carMakeName = null;
+                string carName = null;
+                string batteryMakeName = null;
+
+                if (r.BatteryTypeNo.HasValue && btrTypeDict.TryGetValue(r.BatteryTypeNo.Value, out var t))
+                {
+                    batteryTypeName = t.BatteryTypeName;
+                    carReleaseYear = t.CarReleaseYear;
+                    if (t.CarMakeCode != null) carMakeDict.TryGetValue(t.CarMakeCode, out carMakeName);
+                    if (t.CarCode != null) carDict.TryGetValue(t.CarCode, out carName);
+                    if (t.BatteryMakeCode != null) btrMakeDict.TryGetValue(t.BatteryMakeCode, out batteryMakeName);
+                }
+
+                return new SlotInfoDto
+                {
+                    Row = SafeParseInt(r.Row),
+                    Col = SafeParseInt(r.Col),
+                    Lvl = SafeParseInt(r.Lvl),
+                    LabelId = r.LabelId,
+                    InspectGrade = r.InspectGrade,
+                    SiteName = siteName,
+                    CollectDate = r.CollectDate,
+                    CollectReason = r.CollectReason,
+                    PackModuleCode = r.PackModuleCode,
+                    BatteryTypeName = batteryTypeName,
+                    CarReleaseYear = carReleaseYear,
+                    CarMakeName = carMakeName,
+                    CarName = carName,
+                    BatteryMakeName = batteryMakeName,
+                };
             }).ToList();
 
             return list;
+        }
+
+        // A Query implementation based on slot + lookups, with filters and DTO mapping
+        public async Task<IReadOnlyList<GradeClassBatteryDbDto>> SearchGradeWarehouseBatteriesAsync(
+            string siteCode,
+            string factCode,
+            string gradeWarehouseCode,
+            string labelSubstring,
+            string selectedGrade,
+            DateTime startCollectionDate,
+            DateTime endCollectionDate,
+            string carManufacture,
+            string carModel,
+            string batteryManufacture,
+            string releaseYear,
+            string batteryType,
+            CancellationToken ct = default(CancellationToken))
+        {
+            var slots = await GetSlotsAsync(siteCode, factCode, gradeWarehouseCode, ct).ConfigureAwait(false);
+
+            // Apply filters similar to A query conditions
+            var filtered = slots.Where(s =>
+                (!string.IsNullOrEmpty(s.LabelId)) &&
+                (string.IsNullOrEmpty(labelSubstring) || s.LabelId.Contains(labelSubstring)) &&
+                (string.IsNullOrEmpty(selectedGrade) || string.Equals(s.InspectGrade, selectedGrade, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(s.CollectDate) || (startCollectionDate == DateTime.MinValue || CompareDateString(s.CollectDate, startCollectionDate) >= 0)) &&
+                (string.IsNullOrEmpty(s.CollectDate) || (endCollectionDate == DateTime.MinValue || CompareDateString(s.CollectDate, endCollectionDate) <= 0)) &&
+                (string.IsNullOrEmpty(carManufacture) || string.Equals(s.CarMakeName, carManufacture, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(carModel) || string.Equals(s.CarName, carModel, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(batteryManufacture) || string.Equals(s.BatteryMakeName, batteryManufacture, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(releaseYear) || string.Equals(s.CarReleaseYear, releaseYear, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(batteryType) || string.Equals(s.BatteryTypeName, batteryType, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+
+            var result = filtered.Select(s => new GradeClassBatteryDbDto
+            {
+                ROW = s.Row,
+                COL = s.Col,
+                LVL = s.Lvl,
+                LBL_ID = s.LabelId,
+                INSP_GRD = s.InspectGrade,
+                SITE_NM = s.SiteName,
+                COLT_DAT = s.CollectDate,
+                COLT_RESN = s.CollectReason,
+                PACK_MDLE_CD = s.PackModuleCode,
+                BTR_TYPE_NM = s.BatteryTypeName,
+                CAR_RELS_YEAR = s.CarReleaseYear,
+                CAR_MAKE_NM = s.CarMakeName,
+                CAR_NM = s.CarName,
+                BTR_MAKE_NM = s.BatteryMakeName,
+            }).ToList();
+
+            return result;
+        }
+
+        private static int CompareDateString(string yyyymmdd, DateTime dt)
+        {
+            if (string.IsNullOrEmpty(yyyymmdd)) return 0;
+            if (yyyymmdd.Length != 8) return 0;
+            int strVal; if (!int.TryParse(yyyymmdd, out strVal)) return 0;
+            int dtVal = dt.Year * 10000 + dt.Month * 100 + dt.Day;
+            if (strVal == dtVal) return 0;
+            return strVal < dtVal ? -1 : 1;
         }
 
         private static int SafeParseInt(string s)

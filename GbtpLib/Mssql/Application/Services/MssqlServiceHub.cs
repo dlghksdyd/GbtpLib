@@ -231,10 +231,8 @@ namespace GbtpLib.Mssql.Application.Services
             public LoginUseCase Login { get { return _login.Value; } }
             public GetCodeUseCase GetCode { get { return _getCode.Value; } }
             public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
-            // Back-compat individual slot use cases
             public InitializeSlotsUseCase InitializeSlots { get { return _initializeSlots.Value; } }
             public UpdateWarehouseSlotUseCase UpdateWarehouseSlot { get { return _updateWarehouseSlot.Value; } }
-            // New consolidated slot use cases
             public WarehouseSlotUseCases Slots { get { return _warehouseSlotUseCases.Value; } }
             public GradeLookupUseCase GradeLookup { get { return _gradeLookup.Value; } }
             public OutcomeFlowUseCases OutcomeFlow { get { return _outcomeFlow.Value; } }
@@ -274,7 +272,7 @@ namespace GbtpLib.Mssql.Application.Services
                     _updateWarehouseSlot = new Lazy<UpdateWarehouseSlotUseCase>(() => new UpdateWarehouseSlotUseCase(_warehouses.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotUseCases = new Lazy<WarehouseSlotUseCases>(() => new WarehouseSlotUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
                     _gradeLookup = new Lazy<GradeLookupUseCase>(() => new GradeLookupUseCase(_inspection.Value), LazyThreadSafetyMode.None);
-                    _outcomeFlow = new Lazy<OutcomeFlowUseCases>(() => new OutcomeFlowUseCases(_warehouses.Value, _storedProc.Value, _cmdRepo.Value, _cmdQueries.Value), LazyThreadSafetyMode.None);
+                    _outcomeFlow = new Lazy<OutcomeFlowUseCases>(() => new OutcomeFlowUseCases(_warehouses.Value, _storedProc.Value, _cmdRepo.Value, _cmdQueries.Value, _slots.Value), LazyThreadSafetyMode.None);
                     _incomeFlow = new Lazy<IncomeFlowUseCases>(() => new IncomeFlowUseCases(_storedProc.Value, _cmdRepo.Value, _cmdQueries.Value, _warehouses.Value), LazyThreadSafetyMode.None);
                     _filterMetadata = new Lazy<FilterMetadataUseCase>(() => new FilterMetadataUseCase(_metadata.Value), LazyThreadSafetyMode.None);
                     _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);

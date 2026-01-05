@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using GbtpLib.Mssql.Domain; // Moved DTO here
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -17,6 +19,9 @@ namespace GbtpLib.Mssql.Application.UseCases
         private readonly IStoredProcedureExecutor _sp;
         private readonly IItfCmdDataRepository _repo;
         private readonly IItfCmdDataQueries _queries;
+        // Add query repository for reading warehouse slot/battery info
+        private readonly ISlotQueryRepository _slotQueries;
+
         public OutcomeFlowUseCases(IInvWarehouseRepository warehouseRepo, IStoredProcedureExecutor spExec, IItfCmdDataRepository cmdRepo, IItfCmdDataQueries cmdQueries)
         {
             _warehouseRepo = warehouseRepo;
@@ -25,22 +30,11 @@ namespace GbtpLib.Mssql.Application.UseCases
             _queries = cmdQueries;
         }
 
-        public class GradeClassBatteryDbDto
+        // Overload allowing search capabilities via slot query repository
+        public OutcomeFlowUseCases(IInvWarehouseRepository warehouseRepo, IStoredProcedureExecutor spExec, IItfCmdDataRepository cmdRepo, IItfCmdDataQueries cmdQueries, ISlotQueryRepository slotQueries)
+            : this(warehouseRepo, spExec, cmdRepo, cmdQueries)
         {
-            public int ROW { get; set; }
-            public int COL { get; set; }
-            public int LVL { get; set; }
-            public string LBL_ID { get; set; }
-            public string INSP_GRD { get; set; }
-            public string SITE_NM { get; set; }
-            public string COLT_DAT { get; set; }
-            public string COLT_RESN { get; set; }
-            public string PACK_MDLE_CD { get; set; }
-            public string BTR_TYPE_NM { get; set; }
-            public string CAR_RELS_YEAR { get; set; }
-            public string CAR_MAKE_NM { get; set; }
-            public string CAR_NM { get; set; }
-            public string BTR_MAKE_NM { get; set; }
+            _slotQueries = slotQueries;
         }
 
         public async Task<IReadOnlyList<GradeClassBatteryDbDto>> SearchGradeWarehouseBatteriesAsync(
@@ -60,15 +54,48 @@ namespace GbtpLib.Mssql.Application.UseCases
         {
             try
             {
-                // TODO: Use _warehouseRepo (or dedicated query interface) to implement search
-                await Task.Yield();
-                return new List<GradeClassBatteryDbDto>();
+                if (_slotQueries == null)
+                {
+                    AppLog.Warn("OutcomeFlowUseCases.SearchGradeWarehouseBatteriesAsync: ISlotQueryRepository not configured.");
+                    return new List<GradeClassBatteryDbDto>();
+                }
+
+                // Delegate to repository implementation (A Query)
+                var list = await _slotQueries.SearchGradeWarehouseBatteriesAsync(
+                    siteCode,
+                    factoryCode,
+                    gradeWarehouseCode,
+                    labelSubstring,
+                    selectedGrade,
+                    startCollectionDate,
+                    endCollectionDate,
+                    carManufacture,
+                    carModel,
+                    batteryManufacture,
+                    releaseYear,
+                    batteryType,
+                    ct).ConfigureAwait(false);
+
+                return list ?? new List<GradeClassBatteryDbDto>();
             }
             catch (Exception ex)
             {
                 AppLog.Error("OutcomeFlowUseCases.SearchGradeWarehouseBatteriesAsync failed.", ex);
                 throw;
             }
+        }
+
+        private static int CompareDateString(string yyyymmdd, DateTime dt)
+        {
+            // Safely compare YYYYMMDD string with DateTime
+            if (string.IsNullOrEmpty(yyyymmdd)) return 0;
+            if (yyyymmdd.Length != 8) return 0;
+            // Build comparable int
+            int strVal;
+            if (!int.TryParse(yyyymmdd, out strVal)) return 0;
+            int dtVal = dt.Year * 10000 + dt.Month * 100 + dt.Day;
+            if (strVal == dtVal) return 0;
+            return strVal < dtVal ? -1 : 1;
         }
 
         // Moved from OutcomeFlowsUseCases.cs
