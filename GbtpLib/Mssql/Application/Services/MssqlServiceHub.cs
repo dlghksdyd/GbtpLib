@@ -240,6 +240,8 @@ namespace GbtpLib.Mssql.Application.Services
             public FilterMetadataUseCase FilterMetadata { get { return _filterMetadata.Value; } }
             public InterfaceCommandUseCases InterfaceCommands { get { return _interfaceCommandUseCases.Value; } }
             public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
+            // Expose defect battery queries for read-only searches
+            public IDefectBatteryQueries Defects { get { return _defects.Value; } }
 
             internal Services(IAppDbContext db, IUnitOfWork uow)
             {
