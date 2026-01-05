@@ -35,7 +35,6 @@ namespace GbtpLib.Mssql.Application.UseCases
             catch (Exception ex) { AppLog.Error("WarehouseSlotUseCases.GetLoadingAsync failed.", ex); throw; }
         }
 
-        // Commands (from UpdateWarehouseSlotUseCase)
         public async Task<bool> SetLabelAsync(WarehouseSlotUpdateDto dto, CancellationToken ct = default(CancellationToken))
         {
             try { var affected = await _warehouseRepo.UpdateLabelAndGradeAsync(dto, ct).ConfigureAwait(false); return affected > 0; }

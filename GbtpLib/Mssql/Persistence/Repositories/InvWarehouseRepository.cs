@@ -53,6 +53,12 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                                        .ConfigureAwait(false);
             if (entity == null) return 0;
 
+            // 이미 비어있다면 반영된 것으로 간주
+            if (string.IsNullOrEmpty(entity.LabelId) && string.IsNullOrEmpty(entity.LoadGrade))
+            {
+                return 1;
+            }
+
             entity.LabelId = string.Empty;
             entity.LoadGrade = string.Empty;
 
@@ -63,19 +69,36 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var query = _db.Set<InvWarehouseEntity>().Where(x => x.LabelId == labelId);
+            // LabelId is unique; fetch single entity
+            var query = _db.Set<InvWarehouseEntity>().AsNoTracking().Where(x => x.LabelId == labelId);
             if (!string.IsNullOrEmpty(siteCode)) query = query.Where(x => x.SiteCode == siteCode);
             if (!string.IsNullOrEmpty(factoryCode)) query = query.Where(x => x.FactoryCode == factoryCode);
             if (!string.IsNullOrEmpty(warehouseCode)) query = query.Where(x => x.WarehouseCode == warehouseCode);
 
-            var list = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
-            if (list.Count == 0) return 0;
+            var entityKeyOnly = await query.Select(x => new { x.SiteCode, x.FactoryCode, x.WarehouseCode, x.Row, x.Col, x.Level })
+                                           .FirstOrDefaultAsync(cancellationToken)
+                                           .ConfigureAwait(false);
+            if (entityKeyOnly == null) return 0;
 
-            foreach (var e in list)
+            // Reattach tracked entity by key to update
+            var entity = await _db.Set<InvWarehouseEntity>()
+                .FirstOrDefaultAsync(x => x.SiteCode == entityKeyOnly.SiteCode
+                                       && x.FactoryCode == entityKeyOnly.FactoryCode
+                                       && x.WarehouseCode == entityKeyOnly.WarehouseCode
+                                       && x.Row == entityKeyOnly.Row
+                                       && x.Col == entityKeyOnly.Col
+                                       && x.Level == entityKeyOnly.Level, cancellationToken)
+                                       .ConfigureAwait(false);
+            if (entity == null) return 0;
+
+            // If already empty, consider as affected per business rule
+            if (string.IsNullOrEmpty(entity.LabelId) && string.IsNullOrEmpty(entity.LoadGrade))
             {
-                e.LabelId = string.Empty;
-                e.LoadGrade = string.Empty;
+                return 1;
             }
+
+            entity.LabelId = string.Empty;
+            entity.LoadGrade = string.Empty;
 
             return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
