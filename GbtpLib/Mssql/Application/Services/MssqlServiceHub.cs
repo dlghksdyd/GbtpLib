@@ -71,11 +71,11 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<IQltBtrInspQueries> _inspection;
             private readonly Lazy<IDefectBatteryQueries> _defects;
             private readonly Lazy<IWarehouseQueries> _warehouseQueries;
+            private readonly Lazy<ILabelInfoLookupUseCase> _labelInfoLookup;
 
             private readonly Lazy<LoginUseCase> _login;
             private readonly Lazy<GetCodeUseCase> _getCode;
             private readonly Lazy<MetadataUseCases> _metadataUseCases;
-            private readonly Lazy<InitializeSlotsUseCase> _initializeSlots;
             private readonly Lazy<WarehouseSlotUseCases> _warehouseSlotUseCases;
             private readonly Lazy<GradeLookupUseCase> _gradeLookup;
             private readonly Lazy<OutcomeFlowUseCases> _outcomeFlow;
@@ -88,7 +88,6 @@ namespace GbtpLib.Mssql.Application.Services
             public LoginUseCase Login { get { return _login.Value; } }
             public GetCodeUseCase GetCode { get { return _getCode.Value; } }
             public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
-            public InitializeSlotsUseCase InitializeSlots { get { return _initializeSlots.Value; } }
             public WarehouseSlotUseCases Slots { get { return _warehouseSlotUseCases.Value; } }
             public GradeLookupUseCase GradeLookup { get { return _gradeLookup.Value; } }
             public OutcomeFlowUseCases OutcomeFlow { get { return _outcomeFlow.Value; } }
@@ -97,6 +96,7 @@ namespace GbtpLib.Mssql.Application.Services
             public LabelManagementUseCases Labels { get { return _labelManagementUseCases.Value; } }
             public DefectBatteryUseCases Defects { get { return _defectUseCases.Value; } }
             public QltBtrInoutInspectionUseCases InoutInspections { get { return _inoutInspectionUseCases.Value; } }
+            public ILabelInfoLookupUseCase LabelInfoLookup { get { return _labelInfoLookup.Value; } }
 
             internal Services(IAppDbContext db, IUnitOfWork uow)
             {
@@ -119,11 +119,11 @@ namespace GbtpLib.Mssql.Application.Services
                     _inspection = new Lazy<IQltBtrInspQueries>(() => new QltBtrInspQueries(_db), LazyThreadSafetyMode.None);
                     _defects = new Lazy<IDefectBatteryQueries>(() => new DefectBatteryQueries(_db), LazyThreadSafetyMode.None);
                     _warehouseQueries = new Lazy<IWarehouseQueries>(() => new WarehouseQueries(_db), LazyThreadSafetyMode.None);
+                    _labelInfoLookup = new Lazy<ILabelInfoLookupUseCase>(() => new LabelInfoLookupUseCase(_db), LazyThreadSafetyMode.None);
 
                     _login = new Lazy<LoginUseCase>(() => new LoginUseCase(_users.Value), LazyThreadSafetyMode.None);
                     _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);
                     _metadataUseCases = new Lazy<MetadataUseCases>(() => new MetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
-                    _initializeSlots = new Lazy<InitializeSlotsUseCase>(() => new InitializeSlotsUseCase(_slots.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotUseCases = new Lazy<WarehouseSlotUseCases>(() => new WarehouseSlotUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
                     _gradeLookup = new Lazy<GradeLookupUseCase>(() => new GradeLookupUseCase(_inspection.Value), LazyThreadSafetyMode.None);
                     _outcomeFlow = new Lazy<OutcomeFlowUseCases>(() => new OutcomeFlowUseCases(_slots.Value), LazyThreadSafetyMode.None);

@@ -1,5 +1,3 @@
-using System;
-
 namespace GbtpLib.Mssql.Domain
 {
     // Enums mirrored from Reference layer for consistency

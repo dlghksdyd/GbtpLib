@@ -18,25 +18,66 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
         public Task<int> ExecuteAsync(string procedureName, IDictionary<string, object> parameters, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Build parameterized EXEC statement for EF6 ExecuteSqlCommand
-            var sql = $"EXEC {procedureName} {BuildPlaceholders(parameters)}";
-            var args = BuildSqlParameters(parameters);
+            // Build EXEC with named assignments in fixed stored procedure parameter order
+            var sql = $"EXEC {procedureName} {BuildNamedAssignments()}";
+            var args = BuildOrderedSqlParameters(parameters);
             return _db.ExecuteSqlCommandAsync(sql, cancellationToken, args);
         }
 
-        private static string BuildPlaceholders(IDictionary<string, object> parameters)
+        // Fixed order and named assignments to avoid positional binding issues
+        private static string BuildNamedAssignments()
         {
-            if (parameters == null || parameters.Count == 0) return string.Empty;
-            return string.Join(", ", System.Linq.Enumerable.Select(parameters, kv => kv.Key));
+            var orderedKeys = new[]
+            {
+                "@IN_CMD_CD",
+                "@IN_DATA1",
+                "@IN_DATA2",
+                "@IN_DATA3",
+                "@IN_DATA4",
+                "@IN_DATA5",
+                "@IN_DATA6",
+                "@IN_DATA7",
+                "@IN_DATA8",
+                "@IN_DATA9",
+                "@IN_DATA10",
+                "@IN_REQ_SYS",
+            };
+            var parts = new List<string>(orderedKeys.Length);
+            foreach (var key in orderedKeys)
+            {
+                parts.Add($"{key}={key}");
+            }
+            return string.Join(", ", parts);
         }
 
-        private static object[] BuildSqlParameters(IDictionary<string, object> parameters)
+        // Create SqlParameters in fixed order, defaulting missing values to string.Empty
+        private static object[] BuildOrderedSqlParameters(IDictionary<string, object> parameters)
         {
-            if (parameters == null || parameters.Count == 0) return new object[0];
-            var list = new List<object>();
-            foreach (var kv in parameters)
+            var orderedKeys = new[]
             {
-                list.Add(new SqlParameter(kv.Key, kv.Value ?? DBNull.Value));
+                "@IN_CMD_CD",
+                "@IN_DATA1",
+                "@IN_DATA2",
+                "@IN_DATA3",
+                "@IN_DATA4",
+                "@IN_DATA5",
+                "@IN_DATA6",
+                "@IN_DATA7",
+                "@IN_DATA8",
+                "@IN_DATA9",
+                "@IN_DATA10",
+                "@IN_REQ_SYS",
+            };
+
+            var list = new List<object>(orderedKeys.Length);
+            foreach (var key in orderedKeys)
+            {
+                object value = string.Empty; // default to empty string for missing params
+                if (parameters != null && parameters.TryGetValue(key, out var v))
+                {
+                    value = v ?? string.Empty;
+                }
+                list.Add(new SqlParameter(key, value));
             }
             return list.ToArray();
         }

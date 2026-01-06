@@ -58,9 +58,8 @@
     <Compile Include="Mssql\Application\UseCases\FilterMetadataUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\GetCodeUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\GradeLookupUseCase.cs" />
-    <Compile Include="Mssql\Application\UseCases\IncomeFlowsUseCases.cs" />
-    <Compile Include="Mssql\Application\UseCases\InitializeSlotsUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\InterfaceCommandUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\LabelInfoLookupUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\LabelManagementUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\LoginUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\MetadataUseCases.cs" />
@@ -68,10 +67,8 @@
     <Compile Include="Mssql\Application\UseCases\QltBtrInoutInspectionUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\WarehouseSlotUseCases.cs" />
     <Compile Include="Mssql\Configuration\DbConnectionSettings.cs" />
-    <Compile Include="Mssql\Domain\Dtos.cs" />
+    <Compile Include="Mssql\Domain\DtoModels.cs" />
     <Compile Include="Mssql\Domain\Enums.cs" />
-    <Compile Include="Mssql\Domain\DtosReadOnly.cs" />
-    <Compile Include="Mssql\Domain\GradeClassBatteryDbDto.cs" />
     <Compile Include="Mssql\Persistence\Abstractions\IAppDbContext.cs" />
     <Compile Include="Mssql\Persistence\Abstractions\IAppDbContextFactory.cs" />
     <Compile Include="Mssql\Persistence\Configurations\InvWarehouseConfiguration.cs" />

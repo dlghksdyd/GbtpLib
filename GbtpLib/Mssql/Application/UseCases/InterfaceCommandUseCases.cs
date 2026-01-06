@@ -32,7 +32,12 @@ namespace GbtpLib.Mssql.Application.UseCases
                 if (parameters == null) throw new ArgumentNullException(nameof(parameters));
                 parameters["@IN_CMD_CD"] = cmd.ToString();
                 var result = await _sp.ExecuteAsync("BRDS_ITF_CMD_DATA_SET", parameters, ct).ConfigureAwait(false);
-                return result >= 0;
+                // After enqueue attempt, verify existence of the enqueued record
+                // Use DATA1 as the key paired with command code to check ITF_CMD_DATA presence
+                parameters.TryGetValue("@IN_DATA1", out var data1Obj);
+                var data1 = data1Obj as string ?? string.Empty;
+                var list = await _queries.GetPendingAsync(cmd.ToString(), data1, ct).ConfigureAwait(false);
+                return list.Count > 0;
             }
             catch (Exception ex)
             {

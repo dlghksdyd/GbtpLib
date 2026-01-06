@@ -35,7 +35,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
             var inspSrc = _db.Set<QltBtrInspEntity>().AsNoTracking().Where(q => q.BatteryDiagStatus == "Y");
 
-            // 1) 기본 데이터만 먼저 가져오기 (큰 테이블 조인 최소화)
+            // 1) 기본 데이터와 최신 검사결과 결합 (큰 테이블 접근 최소화)
             var baseRows = await (
                 from inv in _db.Set<InvWarehouseEntity>().AsNoTracking()
                 join btr in _db.Set<MstBtrEntity>().AsNoTracking() on inv.LabelId equals btr.LabelId into btrJoin
@@ -68,11 +68,11 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 }
             ).ToListAsync(ct).ConfigureAwait(false);
 
-            // 2) 조회에 필요한 키 집합 추출
+            // 2) 조회에 필요한 키 목록 산출
             var siteCodes = baseRows.Select(r => r.SiteCode).Where(s => s != null).Distinct().ToList();
             var typeNos = baseRows.Select(r => r.BatteryTypeNo).Where(n => n.HasValue).Select(n => n.Value).Distinct().ToList();
 
-            // 3) 작은 Lookup 테이블을 개별 조회하여 메모리 딕셔너리 구성
+            // 3) 각종 Lookup 테이블에서 값 조회하여 메모리 사전에 적재
             var siteDict = await _db.Set<MstSiteEntity>().AsNoTracking()
                 .Where(s => siteCodes.Contains(s.SiteCode))
                 .Select(s => new { s.SiteCode, s.SiteName })
@@ -116,7 +116,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 .Select(m => new { m.BatteryMakeCode, m.BatteryMakeName })
                 .ToDictionaryAsync(x => x.BatteryMakeCode, x => x.BatteryMakeName, ct).ConfigureAwait(false);
 
-            // 4) 최종 DTO 구성 (메모리에서 결합)
+            // 4) 최종 DTO 작성 (메모리에서 조립)
             var list = baseRows.Select(r =>
             {
                 string siteName = null; siteDict.TryGetValue(r.SiteCode, out siteName);
@@ -203,20 +203,20 @@ namespace GbtpLib.Mssql.Persistence.Repositories
 
             var result = filtered.Select(s => new GradeClassBatteryDbDto
             {
-                ROW = s.Row,
-                COL = s.Col,
-                LVL = s.Lvl,
-                LBL_ID = s.LabelId,
-                INSP_GRD = s.InspectGrade,
-                SITE_NM = s.SiteName,
-                COLT_DAT = s.CollectDate,
-                COLT_RESN = s.CollectReason,
-                PACK_MDLE_CD = s.PackModuleCode,
-                BTR_TYPE_NM = s.BatteryTypeName,
-                CAR_RELS_YEAR = s.CarReleaseYear,
-                CAR_MAKE_NM = s.CarMakeName,
-                CAR_NM = s.CarName,
-                BTR_MAKE_NM = s.BatteryMakeName,
+                Row = s.Row,
+                Col = s.Col,
+                Lvl = s.Lvl,
+                LblId = s.LabelId,
+                InspGrd = s.InspectGrade,
+                SiteNm = s.SiteName,
+                ColtDat = s.CollectDate,
+                ColtResn = s.CollectReason,
+                PackMdleCd = s.PackModuleCode,
+                BtrTypeNm = s.BatteryTypeName,
+                CarRelsYear = s.CarReleaseYear,
+                CarMakeNm = s.CarMakeName,
+                CarNm = s.CarName,
+                BtrMakeNm = s.BatteryMakeName,
             }).ToList();
 
             return result;

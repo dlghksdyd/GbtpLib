@@ -31,35 +31,6 @@ namespace GbtpLib.Mssql.Application.UseCases
             _btrTypeRepo = btrTypeRepo ?? throw new ArgumentNullException(nameof(btrTypeRepo));
         }
 
-        // Basic create/delete
-        public async Task<bool> CreateLabelAsync(MstBtrEntity entity, CancellationToken ct = default(CancellationToken))
-        {
-            try
-            {
-                var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
-                return affected > 0;
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error($"LabelManagementUseCases.CreateLabelAsync failed. labelId={entity?.LabelId}", ex);
-                throw;
-            }
-        }
-
-        public async Task<bool> DeleteLabelAsync(string labelId, CancellationToken ct = default(CancellationToken))
-        {
-            try
-            {
-                var affected = await _btrRepo.DeleteAsync(labelId, ct).ConfigureAwait(false);
-                return affected > 0;
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error($"LabelManagementUseCases.DeleteLabelAsync failed. labelId={labelId}", ex);
-                throw;
-            }
-        }
-
         public Task<int> GetNextVersionAsync(string collectDate, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -142,7 +113,6 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
-        // Validation + create (mirrors LabelCreationUseCase)
         public async Task<string> GetPackModuleCodeAsync(int batteryTypeNo, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -157,38 +127,5 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
         }
 
-        public async Task<bool> CreateWithValidationAsync(string labelId, int batteryTypeNo, string packModuleCode, string siteCode, string collectDate, string collectReason, CancellationToken ct = default(CancellationToken))
-        {
-            try
-            {
-                var type = await _btrTypeRepo.GetByNoAsync(batteryTypeNo, ct).ConfigureAwait(false);
-                if (type == null) return false;
-
-                var entity = new MstBtrEntity
-                {
-                    LabelId = labelId,
-                    BatteryTypeNo = batteryTypeNo,
-                    PackModuleCode = packModuleCode,
-                    SiteCode = siteCode,
-                    CollectDate = collectDate,
-                    CollectReason = collectReason,
-                    PrintYn = "N",
-                    BatteryStatus = "01",
-                    StoreInspFlag = "N",
-                    EnergyInspFlag = "N",
-                    DigInspFlag = "N",
-                    UseYn = "Y",
-                    RegDateTime = DateTime.UtcNow,
-                };
-
-                var affected = await _btrRepo.InsertAsync(entity, ct).ConfigureAwait(false);
-                return affected > 0;
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error($"LabelManagementUseCases.CreateWithValidationAsync failed. labelId={labelId}, batteryTypeNo={batteryTypeNo}, siteCode={siteCode}", ex);
-                throw;
-            }
-        }
     }
 }

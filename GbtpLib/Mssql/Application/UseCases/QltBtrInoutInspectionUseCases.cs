@@ -32,7 +32,7 @@ namespace GbtpLib.Mssql.Application.UseCases
                              && x.MachineCode == mc
                              && x.InspKindGroupCode == kindGroup
                              && x.InspKindCode == kind
-                             && x.LabelId == labelId)
+                             && (labelId == string.Empty || x.LabelId == labelId))
                     .OrderByDescending(x => x.InspectSeq)
                     .ToListAsync(ct).ConfigureAwait(false);
                 return list;
