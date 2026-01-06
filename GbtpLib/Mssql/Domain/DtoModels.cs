@@ -22,17 +22,8 @@ namespace GbtpLib.Mssql.Domain
     // Label information
     public sealed class LabelInfoDto
     {
-        public string LabelId { get; set; } = string.Empty;
-        public string CarManufacturer { get; set; } = string.Empty;
-        public string CarModel { get; set; } = string.Empty;
-        public string BatteryManufacturer { get; set; } = string.Empty;
-        public string ReleaseYear { get; set; } = string.Empty;
-        public string BatteryType { get; set; } = string.Empty;
-        public string PackOrModule { get; set; } = string.Empty;
         public string Site { get; set; } = string.Empty;
         public string CollectionDate { get; set; } = string.Empty;
-        public string CollectionReason { get; set; } = string.Empty;
-        public string Grade { get; set; } = string.Empty;
         public string ColtDat { get; set; } = string.Empty;
         public string CarMakeNm { get; set; } = string.Empty;
         public string CarNm { get; set; } = string.Empty;
@@ -41,32 +32,27 @@ namespace GbtpLib.Mssql.Domain
         public string BtrTypeNm { get; set; } = string.Empty;
     }
 
-    // Transfer request
-    public sealed class TransferRequestDto
-    {
-        public string Label { get; set; } = string.Empty;
-        public int Row { get; set; }
-        public int Column { get; set; }
-        public int Level { get; set; }
-        public int LoadingRow { get; set; }
-        public int LoadingColumn { get; set; }
-        public int LoadingLevel { get; set; }
-        public ERequestStatus Status { get; set; }
-    }
-
-    // Stored procedure params
-    public sealed class StoredProcedureParamDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public object Value { get; set; }
-    }
-
     // Simple code-name pairs
-    public sealed class CodeNameDto { public string Code { get; set; } = string.Empty; public string Name { get; set; } = string.Empty; }
-    public sealed class WarehouseCodeNameDto { public string Code { get; set; } = string.Empty; public string Name { get; set; } = string.Empty; }
+    public sealed class CodeNameDto
+    {
+        public string Code { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public sealed class WarehouseCodeNameDto
+    {
+        public string Code { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+    }
 
     // Slot layout
-    public sealed class WarehouseSlotLayoutDto { public int Row { get; set; } public int Col { get; set; } public int Lvl { get; set; } public string LabelId { get; set; } = string.Empty; }
+    public sealed class WarehouseSlotLayoutDto
+    {
+        public int Row { get; set; }
+        public int Col { get; set; }
+        public int Lvl { get; set; }
+        public string LabelId { get; set; } = string.Empty;
+    }
 
     // Label creation metadata
     public sealed class LabelCreationInfoDto
@@ -128,7 +114,7 @@ namespace GbtpLib.Mssql.Domain
         public string Grade { get; set; } = string.Empty;
     }
 
-    // Grade-class battery search result (PascalCase fields)
+    // Grade-class battery search result
     public sealed class GradeClassBatteryDbDto
     {
         public int Row { get; set; }
