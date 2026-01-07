@@ -4,7 +4,7 @@ using GbtpLib.Mssql.Domain;
 
 namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
 {
-    public interface IInvWarehouseRepository
+    public interface IWarehouseCommands
     {
         Task<int> UpdateLabelAndGradeAsync(WarehouseSlotUpdateDto dto, CancellationToken cancellationToken = default(CancellationToken));
         Task<int> ClearLabelAsync(WarehouseSlotKeyDto key, CancellationToken cancellationToken = default(CancellationToken));

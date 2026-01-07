@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 using GbtpLib.Logging;
+using GbtpLib.Mssql.Persistence.Entities;
 
 namespace GbtpLib.Mssql.Application.UseCases
 {
@@ -15,9 +16,9 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class LoginUseCase
     {
-        private readonly IMstUserInfoRepository _repo;
+        private readonly IMstUserInfoQueries _repo;
 
-        public LoginUseCase(IMstUserInfoRepository repo)
+        public LoginUseCase(IMstUserInfoQueries repo)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
@@ -39,6 +40,12 @@ namespace GbtpLib.Mssql.Application.UseCases
                 AppLog.Error("LoginUseCase.LoginAsync failed.", ex);
                 throw;
             }
+        }
+
+        public Task<MstUserInfoEntity> GetByIdPasswordAsync(string userId, string password, CancellationToken ct = default(CancellationToken))
+        {
+            try { return _repo.GetByIdPasswordAsync(userId, password, ct); }
+            catch (Exception ex) { AppLog.Error("LoginUseCase.GetByIdPasswordAsync failed.", ex); throw; }
         }
     }
 }

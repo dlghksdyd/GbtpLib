@@ -4,7 +4,7 @@ using GbtpLib.Mssql.Domain;
 
 namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
 {
-    public interface IItfCmdDataRepository
+    public interface IItfCmdDataCommands
     {
         Task<int> EnqueueAsync(EIfCmd cmd,
             string data1, string data2, string data3, string data4,

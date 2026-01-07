@@ -5,8 +5,10 @@ using GbtpLib.Mssql.Domain;
 
 namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
 {
-    public interface ILabelCreationQueries
+    public interface ILabelQueries
     {
         Task<IReadOnlyList<LabelCreationInfoDto>> GetLabelCreationInfosAsync(CancellationToken ct = default(CancellationToken));
+        Task<LabelInfoDto> GetByLabelIdAsync(string labelId, CancellationToken ct = default(CancellationToken));
+        Task<int> GetNextVersionAsync(string collectDate, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

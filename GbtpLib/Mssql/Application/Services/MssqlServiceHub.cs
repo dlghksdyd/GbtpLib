@@ -57,19 +57,19 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly IUnitOfWork _uow;
             private bool _disposed;
 
-            private readonly Lazy<IMstUserInfoRepository> _users;
-            private readonly Lazy<IInvWarehouseRepository> _warehouses;
-            private readonly Lazy<IItfCmdDataRepository> _cmdRepo;
+            private readonly Lazy<IMstUserInfoQueries> _users;
+            private readonly Lazy<IWarehouseCommands> _warehouses;
+            private readonly Lazy<IItfCmdDataCommands> _cmdRepo;
             private readonly Lazy<IItfCmdDataQueries> _cmdQueries;
             private readonly Lazy<IStoredProcedureExecutor> _storedProc;
-            private readonly Lazy<IMstCodeRepository> _codes;
-            private readonly Lazy<ISlotQueryRepository> _slots;
-            private readonly Lazy<IMstBtrRepository> _batteries;
-            private readonly Lazy<IMstBtrTypeRepository> _batteryTypes;
+            private readonly Lazy<IMstCodeQueries> _codes;
+            private readonly Lazy<IWarehouseQueries> _slots;
+            private readonly Lazy<ILabelCommands> _batteries;
+            private readonly Lazy<IMstBtrTypeQueries> _batteryTypes;
             private readonly Lazy<IMetadataQueries> _metadata;
-            private readonly Lazy<ILabelCreationQueries> _labelCreation;
+            private readonly Lazy<ILabelQueries> _labelCreation;
             private readonly Lazy<IDefectBatteryQueries> _defects;
-            private readonly Lazy<ILabelInfoLookupRepository> _labelInfoLookup;
+            private readonly Lazy<ILabelQueries> _labelInfoLookup;
 
             private readonly Lazy<LoginUseCase> _login;
             private readonly Lazy<GetCodeUseCase> _getCode;
@@ -79,7 +79,7 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<LabelUseCases> _labelManagementUseCases;
             private readonly Lazy<QltBtrInoutInspectionUseCases> _inoutInspectionUseCases;
             private readonly Lazy<DefectBatteryUseCases> _defectUseCases;
-            
+
             public LoginUseCase Login { get { return _login.Value; } }
             public GetCodeUseCase GetCode { get { return _getCode.Value; } }
             public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
@@ -97,39 +97,39 @@ namespace GbtpLib.Mssql.Application.Services
                 try
                 {
                     // CQRS-separated implementations
-                    var masterRepo = new MasterDataRepository(_db);   // commands
+                    var masterRepo = new MasterDataCommands(_db);   // commands
                     var masterQueries = new MasterDataQueries(_db);  // queries
-                    var warehouseRepo = new WarehouseRepository(_db); // commands
+                    var warehouseRepo = new WarehouseCommands(_db); // commands
                     var warehouseQueries = new WarehouseQueries(_db);  // queries
-                    var labelRepo = new LabelRepository(_db);         // commands
+                    var labelRepo = new LabelCommands(_db);         // commands
                     var labelQueries = new LabelQueries(_db);         // queries
 
-                    _users = new Lazy<IMstUserInfoRepository>(() => masterQueries, LazyThreadSafetyMode.None);
-                    _warehouses = new Lazy<IInvWarehouseRepository>(() => warehouseRepo, LazyThreadSafetyMode.None);
-                    _cmdRepo = new Lazy<IItfCmdDataRepository>(() => new ItfCmdDataRepository(_db), LazyThreadSafetyMode.None);
+                    _users = new Lazy<IMstUserInfoQueries>(() => masterQueries, LazyThreadSafetyMode.None);
+                    _warehouses = new Lazy<IWarehouseCommands>(() => warehouseRepo, LazyThreadSafetyMode.None);
+                    _cmdRepo = new Lazy<IItfCmdDataCommands>(() => new ItfCmdDataCommands(_db), LazyThreadSafetyMode.None);
                     _cmdQueries = new Lazy<IItfCmdDataQueries>(() => new ItfCmdDataQueries(_db), LazyThreadSafetyMode.None);
                     _storedProc = new Lazy<IStoredProcedureExecutor>(() => new StoredProcedureExecutor(_db), LazyThreadSafetyMode.None);
-                    _codes = new Lazy<IMstCodeRepository>(() => masterQueries, LazyThreadSafetyMode.None);
-                    _slots = new Lazy<ISlotQueryRepository>(() => warehouseQueries, LazyThreadSafetyMode.None);
-                    _batteries = new Lazy<IMstBtrRepository>(() => labelRepo, LazyThreadSafetyMode.None);
-                    _batteryTypes = new Lazy<IMstBtrTypeRepository>(() => masterQueries, LazyThreadSafetyMode.None);
+                    _codes = new Lazy<IMstCodeQueries>(() => masterQueries, LazyThreadSafetyMode.None);
+                    _slots = new Lazy<IWarehouseQueries>(() => warehouseQueries, LazyThreadSafetyMode.None);
+                    _batteries = new Lazy<ILabelCommands>(() => labelRepo, LazyThreadSafetyMode.None);
+                    _batteryTypes = new Lazy<IMstBtrTypeQueries>(() => masterQueries, LazyThreadSafetyMode.None);
                     _metadata = new Lazy<IMetadataQueries>(() => new MetadataQueries(_db), LazyThreadSafetyMode.None);
-                    _labelCreation = new Lazy<ILabelCreationQueries>(() => new LabelCreationQueries(_db), LazyThreadSafetyMode.None);
+                    _labelCreation = new Lazy<ILabelQueries>(() => labelQueries, LazyThreadSafetyMode.None);
                     _defects = new Lazy<IDefectBatteryQueries>(() => new DefectBatteryQueries(_db), LazyThreadSafetyMode.None);
-                    _labelInfoLookup = new Lazy<ILabelInfoLookupRepository>(() => labelQueries, LazyThreadSafetyMode.None);
+                    _labelInfoLookup = new Lazy<ILabelQueries>(() => labelQueries, LazyThreadSafetyMode.None);
 
                     _login = new Lazy<LoginUseCase>(() => new LoginUseCase(_users.Value), LazyThreadSafetyMode.None);
                     _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);
                     _metadataUseCases = new Lazy<MetadataUseCases>(() => new MetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotUseCases = new Lazy<WarehouseUseCases>(() => new WarehouseUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
                     _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);
-                    _labelManagementUseCases = new Lazy<LabelUseCases>(() => new LabelUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value, _labelInfoLookup.Value), LazyThreadSafetyMode.None);
+                    _labelManagementUseCases = new Lazy<LabelUseCases>(() => new LabelUseCases(_batteries.Value, _warehouses.Value, _labelCreation.Value, _batteryTypes.Value), LazyThreadSafetyMode.None);
                     _inoutInspectionUseCases = new Lazy<QltBtrInoutInspectionUseCases>(() => new QltBtrInoutInspectionUseCases(_db), LazyThreadSafetyMode.None);
                     _defectUseCases = new Lazy<DefectBatteryUseCases>(() => new DefectBatteryUseCases(_defects.Value), LazyThreadSafetyMode.None);
                 }
                 catch (Exception ex)
                 {
-                    AppLog.Error("MssqlServiceHub.Services initialization failed." , ex);
+                    AppLog.Error("MssqlServiceHub.Services initialization failed.", ex);
                     throw;
                 }
             }

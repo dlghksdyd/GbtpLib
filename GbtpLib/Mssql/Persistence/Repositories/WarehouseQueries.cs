@@ -12,7 +12,7 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
     // Query-side repository for warehouse slots (CQRS read path)
-    public class WarehouseQueries : ISlotQueryRepository
+    public class WarehouseQueries : IWarehouseQueries
     {
         private readonly IAppDbContext _db;
         public WarehouseQueries(IAppDbContext db) { _db = db ?? throw new ArgumentNullException(nameof(db)); }

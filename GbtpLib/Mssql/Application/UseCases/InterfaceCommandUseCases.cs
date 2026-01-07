@@ -11,12 +11,12 @@ namespace GbtpLib.Mssql.Application.UseCases
 {
     public class InterfaceCommandUseCases
     {
-        private readonly IItfCmdDataRepository _repo;
+        private readonly IItfCmdDataCommands _repo;
         private readonly IItfCmdDataQueries _queries;
         private readonly IStoredProcedureExecutor _sp;
 
         public InterfaceCommandUseCases(
-            IItfCmdDataRepository repo,
+            IItfCmdDataCommands repo,
             IItfCmdDataQueries queries,
             IStoredProcedureExecutor sp)
         {

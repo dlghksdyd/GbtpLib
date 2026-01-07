@@ -13,10 +13,10 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class WarehouseUseCases
     {
-        private readonly ISlotQueryRepository _slotQueries;
-        private readonly IInvWarehouseRepository _warehouseRepo;
+        private readonly IWarehouseQueries _slotQueries;
+        private readonly IWarehouseCommands _warehouseRepo;
 
-        public WarehouseUseCases(ISlotQueryRepository slotQueries, IInvWarehouseRepository warehouseRepo)
+        public WarehouseUseCases(IWarehouseQueries slotQueries, IWarehouseCommands warehouseRepo)
         {
             _slotQueries = slotQueries ?? throw new ArgumentNullException(nameof(slotQueries));
             _warehouseRepo = warehouseRepo ?? throw new ArgumentNullException(nameof(warehouseRepo));

@@ -9,11 +9,11 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    // Command-side: label CRUD only
-    public class LabelRepository : IMstBtrRepository
+    // Command-side for master data that require writes (currently MST_BTR)
+    public class MasterDataCommands : ILabelCommands
     {
         private readonly IAppDbContext _db;
-        public LabelRepository(IAppDbContext db)
+        public MasterDataCommands(IAppDbContext db)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
         }
@@ -32,16 +32,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             if (item == null) return 0;
             _db.Set<MstBtrEntity>().Remove(item);
             return await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        public async Task<int> GetNextVersionAsync(string collectDate, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var query = _db.Set<MstBtrEntity>().AsNoTracking().Where(x => x.CollectDate == collectDate);
-            var maxVer = await query.MaxAsync(x => (int?)x.Version, cancellationToken).ConfigureAwait(false);
-            if (!maxVer.HasValue || maxVer.Value < 1)
-                return 1;
-            return maxVer.Value + 1;
         }
 
         public async Task<int> UpdatePrintYnAsync(string labelId, string printYn, CancellationToken cancellationToken = default(CancellationToken))

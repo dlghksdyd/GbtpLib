@@ -15,9 +15,9 @@ namespace GbtpLib.Mssql.Application.UseCases
     /// </summary>
     public class GetCodeUseCase
     {
-        private readonly IMstCodeRepository _repo;
+        private readonly IMstCodeQueries _repo;
 
-        public GetCodeUseCase(IMstCodeRepository repo)
+        public GetCodeUseCase(IMstCodeQueries repo)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }

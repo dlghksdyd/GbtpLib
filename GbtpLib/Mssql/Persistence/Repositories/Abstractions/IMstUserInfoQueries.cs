@@ -4,7 +4,7 @@ using GbtpLib.Mssql.Persistence.Entities;
 
 namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
 {
-    public interface IMstUserInfoRepository
+    public interface IMstUserInfoQueries
     {
         Task<MstUserInfoEntity> GetByIdPasswordAsync(string userId, string password, CancellationToken ct = default(CancellationToken));
     }

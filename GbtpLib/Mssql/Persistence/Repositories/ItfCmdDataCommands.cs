@@ -10,10 +10,10 @@ using GbtpLib.Mssql.Domain;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    public class ItfCmdDataRepository : IItfCmdDataRepository
+    public class ItfCmdDataCommands : IItfCmdDataCommands
     {
         private readonly IAppDbContext _db;
-        public ItfCmdDataRepository(IAppDbContext db)
+        public ItfCmdDataCommands(IAppDbContext db)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
         }

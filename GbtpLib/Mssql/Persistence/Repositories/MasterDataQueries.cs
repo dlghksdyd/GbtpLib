@@ -11,7 +11,7 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
     // Query-side for master/code/user/type lookups
-    public class MasterDataQueries : IMstBtrTypeRepository, IMstCodeRepository, IMstUserInfoRepository
+    public class MasterDataQueries : IMstBtrTypeQueries, IMstCodeQueries, IMstUserInfoQueries
     {
         private readonly IAppDbContext _db;
         public MasterDataQueries(IAppDbContext db)
@@ -19,13 +19,11 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             _db = db ?? throw new ArgumentNullException(nameof(db));
         }
 
-        // IMstBtrTypeRepository
         public Task<MstBtrTypeEntity> GetByNoAsync(int batteryTypeNo, CancellationToken ct = default(CancellationToken))
         {
             return _db.Set<MstBtrTypeEntity>().AsNoTracking().FirstOrDefaultAsync(x => x.BatteryTypeNo == batteryTypeNo, ct);
         }
 
-        // IMstCodeRepository
         public async Task<string> GetCodeAsync(string group, string codeName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -49,7 +47,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             return names;
         }
 
-        // IMstUserInfoRepository
         public Task<MstUserInfoEntity> GetByIdPasswordAsync(string userId, string password, CancellationToken ct = default(CancellationToken))
         {
             ct.ThrowIfCancellationRequested();

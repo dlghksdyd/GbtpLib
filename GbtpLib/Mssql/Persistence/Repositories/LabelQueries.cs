@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading;
@@ -10,13 +11,23 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    // Query-side: label info lookup only
-    public class LabelQueries : ILabelInfoLookupRepository
+    // Query-side: unified label queries (info lookup + creation metadata)
+    public class LabelQueries : ILabelQueries
     {
         private readonly IAppDbContext _db;
         public LabelQueries(IAppDbContext db)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
+        }
+
+        public async Task<int> GetNextVersionAsync(string collectDate, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var query = _db.Set<MstBtrEntity>().AsNoTracking().Where(x => x.CollectDate == collectDate);
+            var maxVer = await query.MaxAsync(x => (int?)x.Version, cancellationToken).ConfigureAwait(false);
+            if (!maxVer.HasValue || maxVer.Value < 1)
+                return 1;
+            return maxVer.Value + 1;
         }
 
         public async Task<LabelInfoDto> GetByLabelIdAsync(string labelId, CancellationToken ct = default(CancellationToken))
@@ -45,6 +56,32 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                         };
 
             return await query.FirstOrDefaultAsync(ct).ConfigureAwait(false);
+        }
+
+        public async Task<IReadOnlyList<LabelCreationInfoDto>> GetLabelCreationInfosAsync(CancellationToken ct = default(CancellationToken))
+        {
+            var query = from type in _db.Set<MstBtrTypeEntity>().AsNoTracking()
+                        join carMake in _db.Set<MstCarMakeEntity>().AsNoTracking() on type.CarMakeCode equals carMake.CarMakeCode
+                        join car in _db.Set<MstCarEntity>().AsNoTracking() on type.CarCode equals car.CarCode
+                        join btrMake in _db.Set<MstBtrMakeEntity>().AsNoTracking() on type.BatteryMakeCode equals btrMake.BatteryMakeCode
+                        where type.UseYn == "Y"
+                        orderby type.ListOrder
+                        select new LabelCreationInfoDto
+                        {
+                            CarMakeCode = carMake.CarMakeCode,
+                            CarMakeName = carMake.CarMakeName,
+                            CarCode = car.CarCode,
+                            CarName = car.CarName,
+                            BatteryMakeCode = btrMake.BatteryMakeCode,
+                            BatteryMakeName = btrMake.BatteryMakeName,
+                            CarReleaseYear = type.CarReleaseYear,
+                            BatteryTypeNo = type.BatteryTypeNo,
+                            BatteryTypeSelectCode = type.BatteryTypeSelectCode,
+                            BatteryTypeName = type.BatteryTypeName,
+                        };
+
+            var list = await query.ToListAsync(ct).ConfigureAwait(false);
+            return list;
         }
     }
 }

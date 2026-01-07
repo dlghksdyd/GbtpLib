@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('..\..\packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <Import Project="..\packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
@@ -138,30 +138,28 @@
     <Compile Include="Mssql\Persistence\Entities\SysGridEntity.cs" />
     <Compile Include="Mssql\Persistence\Entities\SysMenuMstEntity.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IDefectBatteryQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IInvWarehouseRepository.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IItfCmdDataQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IItfCmdDataRepository.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\ILabelCreationQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\ILabelInfoLookupRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IItfCmdDataCommands.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\ILabelCommands.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\ILabelQueries.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMetadataQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstBtrRepository.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstBtrTypeRepository.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstCodeRepository.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstUserInfoRepository.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\Abstractions\ISlotQueryRepository.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstBtrTypeQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstCodeQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IMstUserInfoQueries.cs" />
     <Compile Include="Mssql\Persistence\Repositories\Abstractions\IStoredProcedureExecutor.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IWarehouseCommands.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\Abstractions\IWarehouseQueries.cs" />
     <Compile Include="Mssql\Persistence\Repositories\DefectBatteryQueries.cs" />
     <Compile Include="Mssql\Persistence\Repositories\ItfCmdDataQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\ItfCmdDataRepository.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\LabelCreationQueries.cs" />
+    <Compile Include="Mssql\Persistence\Repositories\ItfCmdDataCommands.cs" />
     <Compile Include="Mssql\Persistence\Repositories\LabelQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\LabelRepository.cs" />
+    <Compile Include="Mssql\\Persistence\\Repositories\\LabelCommands.cs" />
     <Compile Include="Mssql\Persistence\Repositories\MasterDataQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\MasterDataRepository.cs" />
+    <Compile Include="Mssql\\Persistence\\Repositories\\MasterDataCommands.cs" />
     <Compile Include="Mssql\Persistence\Repositories\MetadataQueries.cs" />
     <Compile Include="Mssql\Persistence\Repositories\StoredProcedureExecutor.cs" />
     <Compile Include="Mssql\Persistence\Repositories\WarehouseQueries.cs" />
-    <Compile Include="Mssql\Persistence\Repositories\WarehouseRepository.cs" />
+    <Compile Include="Mssql\\Persistence\\Repositories\\WarehouseCommands.cs" />
     <Compile Include="Mssql\Persistence\UnitOfWork\EfUnitOfWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="packages.config" />
@@ -190,7 +188,7 @@
   <Import Project="..\packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>???꾨줈?앺듃????而댄벂?곗뿉 ?녿뒗 NuGet ?⑦궎吏瑜?李몄“?⑸땲?? ?대떦 ?⑦궎吏瑜??ㅼ슫濡쒕뱶?섎젮硫?NuGet ?⑦궎吏 蹂듭썝???ъ슜?섏떗?쒖삤. ?먯꽭???댁슜? http://go.microsoft.com/fwlink/?LinkID=322105瑜?李몄“?섏떗?쒖삤. ?꾨씫???뚯씪? {0}?낅땲??</ErrorText>
+      <ErrorText>???�로?�트????컴퓨?�에 ?�는 NuGet ?�키지�?참조?�니?? ?�당 ?�키지�??�운로드?�려�?NuGet ?�키지 복원???�용?�십?�오. ?�세???�용?�?http://go.microsoft.com/fwlink/?LinkID=322105�?참조?�십?�오. ?�락???�일?�?{0}?�니??</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
     <Error Condition="!Exists('..\..\packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />

@@ -5,12 +5,10 @@ using GbtpLib.Mssql.Domain;
 
 namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
 {
-    public interface ISlotQueryRepository
+    public interface IWarehouseQueries
     {
         Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken));
         Task<IReadOnlyList<SlotInfoDto>> GetLoadingSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken));
-
-        // A Query: Search grade warehouse batteries with filters
         Task<IReadOnlyList<GradeClassBatteryDbDto>> SearchGradeWarehouseBatteriesAsync(
             string siteCode,
             string factCode,

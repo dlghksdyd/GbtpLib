@@ -10,11 +10,11 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    // Command-side repository: warehouse slot updates only (CQRS separation)
-    public class WarehouseRepository : IInvWarehouseRepository
+    // Command-side: warehouse slot updates only (CQRS separation)
+    public class WarehouseCommands : IWarehouseCommands
     {
         private readonly IAppDbContext _db;
-        public WarehouseRepository(IAppDbContext db)
+        public WarehouseCommands(IAppDbContext db)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
         }
