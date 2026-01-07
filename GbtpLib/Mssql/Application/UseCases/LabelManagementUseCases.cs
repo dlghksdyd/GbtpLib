@@ -10,25 +10,28 @@ using GbtpLib.Logging;
 namespace GbtpLib.Mssql.Application.UseCases
 {
     /// <summary>
-    /// Aggregates label-related operations (create/delete, metadata, validation, slot assignment, flows).
+    /// Aggregates label-related operations (create/delete, metadata, validation, slot assignment, flows, lookup).
     /// </summary>
-    public class LabelManagementUseCases
+    public class LabelUseCases
     {
         private readonly IMstBtrRepository _btrRepo;
         private readonly IInvWarehouseRepository _whRepo;
         private readonly ILabelCreationQueries _labelQueries;
         private readonly IMstBtrTypeRepository _btrTypeRepo;
+        private readonly ILabelInfoLookupRepository _labelInfoRepo;
 
-        public LabelManagementUseCases(
+        public LabelUseCases(
             IMstBtrRepository btrRepo,
             IInvWarehouseRepository whRepo,
             ILabelCreationQueries labelQueries,
-            IMstBtrTypeRepository btrTypeRepo)
+            IMstBtrTypeRepository btrTypeRepo,
+            ILabelInfoLookupRepository labelInfoRepo)
         {
             _btrRepo = btrRepo ?? throw new ArgumentNullException(nameof(btrRepo));
             _whRepo = whRepo ?? throw new ArgumentNullException(nameof(whRepo));
             _labelQueries = labelQueries ?? throw new ArgumentNullException(nameof(labelQueries));
             _btrTypeRepo = btrTypeRepo ?? throw new ArgumentNullException(nameof(btrTypeRepo));
+            _labelInfoRepo = labelInfoRepo ?? throw new ArgumentNullException(nameof(labelInfoRepo));
         }
 
         public Task<int> GetNextVersionAsync(string collectDate, CancellationToken ct = default(CancellationToken))
@@ -39,7 +42,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"LabelManagementUseCases.GetNextVersionAsync failed. collectDate={collectDate}", ex);
+                AppLog.Error($"LabelUseCases.GetNextVersionAsync failed. collectDate={collectDate}", ex);
                 throw;
             }
         }
@@ -53,7 +56,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"LabelManagementUseCases.UpdatePrintYnAsync failed. labelId={labelId}, printYn={printYn}", ex);
+                AppLog.Error($"LabelUseCases.UpdatePrintYnAsync failed. labelId={labelId}, printYn={printYn}", ex);
                 throw;
             }
         }
@@ -76,7 +79,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"LabelManagementUseCases.CreateLabelAndAssignSlotAsync failed. labelId={label?.LabelId}, site={slot?.SiteCode}, factory={slot?.FactoryCode}, warehouse={slot?.WarehouseCode}, row={slot?.Row}, col={slot?.Col}, lvl={slot?.Level}", ex);
+                AppLog.Error($"LabelUseCases.CreateLabelAndAssignSlotAsync failed. labelId={label?.LabelId}, site={slot?.SiteCode}, factory={slot?.FactoryCode}, warehouse={slot?.WarehouseCode}, row={slot?.Row}, col={slot?.Col}, lvl={slot?.Level}", ex);
                 throw;
             }
         }
@@ -94,7 +97,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"LabelManagementUseCases.DeleteLabelFlowAsync failed. labelId={labelId}, site={siteCode}, factory={factoryCode}, warehouse={warehouseCode}", ex);
+                AppLog.Error($"LabelUseCases.DeleteLabelFlowAsync failed. labelId={labelId}, site={siteCode}, factory={factoryCode}, warehouse={warehouseCode}", ex);
                 throw;
             }
         }
@@ -108,7 +111,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error("LabelManagementUseCases.GetLabelCreationMetadataAsync failed.", ex);
+                AppLog.Error("LabelUseCases.GetLabelCreationMetadataAsync failed.", ex);
                 throw;
             }
         }
@@ -122,10 +125,23 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"LabelManagementUseCases.GetPackModuleCodeAsync failed. batteryTypeNo={batteryTypeNo}", ex);
+                AppLog.Error($"LabelUseCases.GetPackModuleCodeAsync failed. batteryTypeNo={batteryTypeNo}", ex);
                 throw;
             }
         }
 
+        // Merged: label info lookup by LabelId
+        public async Task<LabelInfoDto> GetLabelInfoByLabelIdAsync(string labelId, CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                return await _labelInfoRepo.GetByLabelIdAsync(labelId, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"LabelUseCases.GetLabelInfoByLabelIdAsync failed. labelId={labelId}", ex);
+                throw;
+            }
+        }
     }
 }

@@ -101,5 +101,68 @@ namespace GbtpLib.Mssql.Application.UseCases
             try { return await _queries.GetInspKindsAsync(inspKindGroupCode, ct).ConfigureAwait(false); }
             catch (Exception ex) { AppLog.Error($"MetadataUseCases.GetInspKindsAsync failed. group={inspKindGroupCode}", ex); throw; }
         }
+
+        /// <summary>
+        /// Gets all grade names.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> GetGradeNamesAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetGradeNamesAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetGradeNamesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets all car make names.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> GetCarMakeNamesAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetCarMakeNamesAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetCarMakeNamesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets all car names.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> GetCarNamesAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetCarNamesAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetCarNamesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets all battery make names.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> GetBatteryMakeNamesAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetBatteryMakeNamesAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetBatteryMakeNamesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets all battery type names.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> GetBatteryTypeNamesAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetBatteryTypeNamesAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetBatteryTypeNamesAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets all release years.
+        /// </summary>
+        public async Task<IReadOnlyList<string>> GetReleaseYearsAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetReleaseYearsAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetReleaseYearsAsync failed.", ex); throw; }
+        }
+
+        /// <summary>
+        /// Gets battery types with year.
+        /// </summary>
+        public async Task<IReadOnlyList<BatteryTypeYearDto>> GetBatteryTypesWithYearAsync(CancellationToken ct = default(CancellationToken))
+        {
+            try { return await _queries.GetBatteryTypesWithYearAsync(ct).ConfigureAwait(false); }
+            catch (Exception ex) { AppLog.Error("MetadataUseCases.GetBatteryTypesWithYearAsync failed.", ex); throw; }
+        }
     }
 }
