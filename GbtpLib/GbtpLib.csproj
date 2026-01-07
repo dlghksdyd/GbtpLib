@@ -60,7 +60,6 @@
     <Compile Include="Mssql\Application\UseCases\LabelManagementUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\LoginUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\MetadataUseCases.cs" />
-    <Compile Include="Mssql\Application\UseCases\OutcomeFlowUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\QltBtrInoutInspectionUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\WarehouseSlotUseCases.cs" />
     <Compile Include="Mssql\Configuration\DbConnectionSettings.cs" />

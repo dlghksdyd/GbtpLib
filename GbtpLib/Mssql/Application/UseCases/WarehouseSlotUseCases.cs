@@ -9,20 +9,20 @@ using GbtpLib.Logging;
 namespace GbtpLib.Mssql.Application.UseCases
 {
     /// <summary>
-    /// Aggregates warehouse slot-related operations (initialize/query + assign/clear label/grade) into a single class.
+    /// Aggregates warehouse-related operations (initialize/query + assign/clear/update) and outcome flow searches.
     /// </summary>
-    public class WarehouseSlotUseCases
+    public class WarehouseUseCases
     {
         private readonly ISlotQueryRepository _slotQueries;
         private readonly IInvWarehouseRepository _warehouseRepo;
 
-        public WarehouseSlotUseCases(ISlotQueryRepository slotQueries, IInvWarehouseRepository warehouseRepo)
+        public WarehouseUseCases(ISlotQueryRepository slotQueries, IInvWarehouseRepository warehouseRepo)
         {
             _slotQueries = slotQueries ?? throw new ArgumentNullException(nameof(slotQueries));
             _warehouseRepo = warehouseRepo ?? throw new ArgumentNullException(nameof(warehouseRepo));
         }
 
-        // Queries (from InitializeSlotsUseCase)
+        // Queries
         public async Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitAsync(string site, string factory, string warehouse, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -32,7 +32,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"WarehouseSlotUseCases.GetOutcomeWaitAsync failed. site={site}, factory={factory}, warehouse={warehouse}", ex);
+                AppLog.Error($"WarehouseUseCases.GetOutcomeWaitAsync failed. site={site}, factory={factory}, warehouse={warehouse}", ex);
                 throw;
             }
         }
@@ -46,11 +46,12 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"WarehouseSlotUseCases.GetLoadingAsync failed. site={site}, factory={factory}, warehouse={warehouse}", ex);
+                AppLog.Error($"WarehouseUseCases.GetLoadingAsync failed. site={site}, factory={factory}, warehouse={warehouse}", ex);
                 throw;
             }
         }
 
+        // Mutations
         public async Task<bool> SetLabelAsync(WarehouseSlotUpdateDto dto, CancellationToken ct = default(CancellationToken))
         {
             try
@@ -60,7 +61,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"WarehouseSlotUseCases.SetLabelAsync failed. site={dto?.SiteCode}, factory={dto?.FactoryCode}, warehouse={dto?.WarehouseCode}, row={dto?.Row}, col={dto?.Col}, lvl={dto?.Level}, label={dto?.LabelId}", ex);
+                AppLog.Error($"WarehouseUseCases.SetLabelAsync failed. site={dto?.SiteCode}, factory={dto?.FactoryCode}, warehouse={dto?.WarehouseCode}, row={dto?.Row}, col={dto?.Col}, lvl={dto?.Level}, label={dto?.LabelId}", ex);
                 throw;
             }
         }
@@ -74,7 +75,7 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"WarehouseSlotUseCases.ClearLabelAsync failed. site={key?.SiteCode}, factory={key?.FactoryCode}, warehouse={key?.WarehouseCode}, row={key?.Row}, col={key?.Col}, lvl={key?.Level}", ex);
+                AppLog.Error($"WarehouseUseCases.ClearLabelAsync failed. site={key?.SiteCode}, factory={key?.FactoryCode}, warehouse={key?.WarehouseCode}, row={key?.Row}, col={key?.Col}, lvl={key?.Level}", ex);
                 throw;
             }
         }
@@ -88,7 +89,48 @@ namespace GbtpLib.Mssql.Application.UseCases
             }
             catch (Exception ex)
             {
-                AppLog.Error($"WarehouseSlotUseCases.UpdateStoreDivAsync failed. site={key?.SiteCode}, factory={key?.FactoryCode}, warehouse={key?.WarehouseCode}, row={key?.Row}, col={key?.Col}, lvl={key?.Level}, storeDiv={storeDiv}", ex);
+                AppLog.Error($"WarehouseUseCases.UpdateStoreDivAsync failed. site={key?.SiteCode}, factory={key?.FactoryCode}, warehouse={key?.WarehouseCode}, row={key?.Row}, col={key?.Col}, lvl={key?.Level}, storeDiv={storeDiv}", ex);
+                throw;
+            }
+        }
+
+        // Outcome flow search (merged from OutcomeFlowUseCases)
+        public async Task<IReadOnlyList<GradeClassBatteryDbDto>> SearchGradeWarehouseBatteriesAsync(
+            string siteCode,
+            string factoryCode,
+            string gradeWarehouseCode,
+            string labelSubstring,
+            string selectedGrade,
+            DateTime startCollectionDate,
+            DateTime endCollectionDate,
+            string carManufacture,
+            string carModel,
+            string batteryManufacture,
+            string releaseYear,
+            string batteryType,
+            CancellationToken ct = default(CancellationToken))
+        {
+            try
+            {
+                var list = await _slotQueries.SearchGradeWarehouseBatteriesAsync(
+                    siteCode,
+                    factoryCode,
+                    gradeWarehouseCode,
+                    labelSubstring,
+                    selectedGrade,
+                    startCollectionDate,
+                    endCollectionDate,
+                    carManufacture,
+                    carModel,
+                    batteryManufacture,
+                    releaseYear,
+                    batteryType,
+                    ct).ConfigureAwait(false);
+                return list ?? new List<GradeClassBatteryDbDto>();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("WarehouseUseCases.SearchGradeWarehouseBatteriesAsync failed.", ex);
                 throw;
             }
         }
