@@ -77,7 +77,6 @@ namespace GbtpLib.Mssql.Application.Services
             private readonly Lazy<GetCodeUseCase> _getCode;
             private readonly Lazy<MetadataUseCases> _metadataUseCases;
             private readonly Lazy<WarehouseSlotUseCases> _warehouseSlotUseCases;
-            private readonly Lazy<GradeLookupUseCase> _gradeLookup;
             private readonly Lazy<OutcomeFlowUseCases> _outcomeFlow;
             private readonly Lazy<FilterMetadataUseCase> _filterMetadata;
             private readonly Lazy<InterfaceCommandUseCases> _interfaceCommandUseCases;
@@ -89,7 +88,6 @@ namespace GbtpLib.Mssql.Application.Services
             public GetCodeUseCase GetCode { get { return _getCode.Value; } }
             public MetadataUseCases MetadataUseCases { get { return _metadataUseCases.Value; } }
             public WarehouseSlotUseCases Slots { get { return _warehouseSlotUseCases.Value; } }
-            public GradeLookupUseCase GradeLookup { get { return _gradeLookup.Value; } }
             public OutcomeFlowUseCases OutcomeFlow { get { return _outcomeFlow.Value; } }
             public FilterMetadataUseCase FilterMetadata { get { return _filterMetadata.Value; } }
             public InterfaceCommandUseCases InterfaceCommands { get { return _interfaceCommandUseCases.Value; } }
@@ -125,7 +123,6 @@ namespace GbtpLib.Mssql.Application.Services
                     _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);
                     _metadataUseCases = new Lazy<MetadataUseCases>(() => new MetadataUseCases(_metadata.Value), LazyThreadSafetyMode.None);
                     _warehouseSlotUseCases = new Lazy<WarehouseSlotUseCases>(() => new WarehouseSlotUseCases(_slots.Value, _warehouses.Value), LazyThreadSafetyMode.None);
-                    _gradeLookup = new Lazy<GradeLookupUseCase>(() => new GradeLookupUseCase(_inspection.Value), LazyThreadSafetyMode.None);
                     _outcomeFlow = new Lazy<OutcomeFlowUseCases>(() => new OutcomeFlowUseCases(_slots.Value), LazyThreadSafetyMode.None);
                     _filterMetadata = new Lazy<FilterMetadataUseCase>(() => new FilterMetadataUseCase(_metadata.Value), LazyThreadSafetyMode.None);
                     _interfaceCommandUseCases = new Lazy<InterfaceCommandUseCases>(() => new InterfaceCommandUseCases(_cmdRepo.Value, _cmdQueries.Value, _storedProc.Value), LazyThreadSafetyMode.None);
