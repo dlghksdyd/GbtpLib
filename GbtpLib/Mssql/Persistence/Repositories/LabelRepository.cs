@@ -9,10 +9,11 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    public class MstBtrRepository : IMstBtrRepository
+    // Command-side: label CRUD only
+    public class LabelRepository : IMstBtrRepository
     {
         private readonly IAppDbContext _db;
-        public MstBtrRepository(IAppDbContext db)
+        public LabelRepository(IAppDbContext db)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
         }
@@ -36,7 +37,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
         public async Task<int> GetNextVersionAsync(string collectDate, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // COLT_DAT is 8-char yyyyMMdd string
             var query = _db.Set<MstBtrEntity>().AsNoTracking().Where(x => x.CollectDate == collectDate);
             var maxVer = await query.MaxAsync(x => (int?)x.Version, cancellationToken).ConfigureAwait(false);
             if (!maxVer.HasValue || maxVer.Value < 1)

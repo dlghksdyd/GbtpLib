@@ -96,19 +96,27 @@ namespace GbtpLib.Mssql.Application.Services
 
                 try
                 {
-                    _users = new Lazy<IMstUserInfoRepository>(() => new MstUserInfoRepository(_db), LazyThreadSafetyMode.None);
-                    _warehouses = new Lazy<IInvWarehouseRepository>(() => new InvWarehouseRepository(_db), LazyThreadSafetyMode.None);
+                    // CQRS-separated implementations
+                    var masterRepo = new MasterDataRepository(_db);   // commands
+                    var masterQueries = new MasterDataQueries(_db);  // queries
+                    var warehouseRepo = new WarehouseRepository(_db); // commands
+                    var warehouseQueries = new WarehouseQueries(_db);  // queries
+                    var labelRepo = new LabelRepository(_db);         // commands
+                    var labelQueries = new LabelQueries(_db);         // queries
+
+                    _users = new Lazy<IMstUserInfoRepository>(() => masterQueries, LazyThreadSafetyMode.None);
+                    _warehouses = new Lazy<IInvWarehouseRepository>(() => warehouseRepo, LazyThreadSafetyMode.None);
                     _cmdRepo = new Lazy<IItfCmdDataRepository>(() => new ItfCmdDataRepository(_db), LazyThreadSafetyMode.None);
                     _cmdQueries = new Lazy<IItfCmdDataQueries>(() => new ItfCmdDataQueries(_db), LazyThreadSafetyMode.None);
                     _storedProc = new Lazy<IStoredProcedureExecutor>(() => new StoredProcedureExecutor(_db), LazyThreadSafetyMode.None);
-                    _codes = new Lazy<IMstCodeRepository>(() => new MstCodeRepository(_db), LazyThreadSafetyMode.None);
-                    _slots = new Lazy<ISlotQueryRepository>(() => new SlotQueryRepository(_db), LazyThreadSafetyMode.None);
-                    _batteries = new Lazy<IMstBtrRepository>(() => new MstBtrRepository(_db), LazyThreadSafetyMode.None);
-                    _batteryTypes = new Lazy<IMstBtrTypeRepository>(() => new MstBtrTypeRepository(_db), LazyThreadSafetyMode.None);
+                    _codes = new Lazy<IMstCodeRepository>(() => masterQueries, LazyThreadSafetyMode.None);
+                    _slots = new Lazy<ISlotQueryRepository>(() => warehouseQueries, LazyThreadSafetyMode.None);
+                    _batteries = new Lazy<IMstBtrRepository>(() => labelRepo, LazyThreadSafetyMode.None);
+                    _batteryTypes = new Lazy<IMstBtrTypeRepository>(() => masterQueries, LazyThreadSafetyMode.None);
                     _metadata = new Lazy<IMetadataQueries>(() => new MetadataQueries(_db), LazyThreadSafetyMode.None);
                     _labelCreation = new Lazy<ILabelCreationQueries>(() => new LabelCreationQueries(_db), LazyThreadSafetyMode.None);
                     _defects = new Lazy<IDefectBatteryQueries>(() => new DefectBatteryQueries(_db), LazyThreadSafetyMode.None);
-                    _labelInfoLookup = new Lazy<ILabelInfoLookupRepository>(() => new LabelInfoLookupRepository(_db), LazyThreadSafetyMode.None);
+                    _labelInfoLookup = new Lazy<ILabelInfoLookupRepository>(() => labelQueries, LazyThreadSafetyMode.None);
 
                     _login = new Lazy<LoginUseCase>(() => new LoginUseCase(_users.Value), LazyThreadSafetyMode.None);
                     _getCode = new Lazy<GetCodeUseCase>(() => new GetCodeUseCase(_codes.Value), LazyThreadSafetyMode.None);

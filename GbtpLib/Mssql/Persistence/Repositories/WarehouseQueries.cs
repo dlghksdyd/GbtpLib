@@ -11,13 +11,11 @@ using GbtpLib.Mssql.Persistence.Repositories.Abstractions;
 
 namespace GbtpLib.Mssql.Persistence.Repositories
 {
-    public class SlotQueryRepository : ISlotQueryRepository
+    // Query-side repository for warehouse slots (CQRS read path)
+    public class WarehouseQueries : ISlotQueryRepository
     {
         private readonly IAppDbContext _db;
-        public SlotQueryRepository(IAppDbContext db)
-        {
-            _db = db ?? throw new ArgumentNullException(nameof(db));
-        }
+        public WarehouseQueries(IAppDbContext db) { _db = db ?? throw new ArgumentNullException(nameof(db)); }
 
         public Task<IReadOnlyList<SlotInfoDto>> GetOutcomeWaitSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct = default(CancellationToken))
         {
@@ -29,18 +27,67 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             return GetSlotsAsync(siteCode, factCode, whCode, ct);
         }
 
+        public async Task<IReadOnlyList<GradeClassBatteryDbDto>> SearchGradeWarehouseBatteriesAsync(
+            string siteCode,
+            string factCode,
+            string gradeWarehouseCode,
+            string labelSubstring,
+            string selectedGrade,
+            DateTime startCollectionDate,
+            DateTime endCollectionDate,
+            string carManufacture,
+            string carModel,
+            string batteryManufacture,
+            string releaseYear,
+            string batteryType,
+            CancellationToken ct = default(CancellationToken))
+        {
+            var slots = await GetSlotsAsync(siteCode, factCode, gradeWarehouseCode, ct).ConfigureAwait(false);
+
+            var filtered = slots.Where(s =>
+                (!string.IsNullOrEmpty(s.LabelId)) &&
+                (string.IsNullOrEmpty(labelSubstring) || s.LabelId.Contains(labelSubstring)) &&
+                (string.IsNullOrEmpty(selectedGrade) || string.Equals(s.InspectGrade, selectedGrade, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(s.CollectDate) || (startCollectionDate == DateTime.MinValue || CompareDateString(s.CollectDate, startCollectionDate) >= 0)) &&
+                (string.IsNullOrEmpty(s.CollectDate) || (endCollectionDate == DateTime.MinValue || CompareDateString(s.CollectDate, endCollectionDate) <= 0)) &&
+                (string.IsNullOrEmpty(carManufacture) || string.Equals(s.CarMakeName, carManufacture, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(carModel) || string.Equals(s.CarName, carModel, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(batteryManufacture) || string.Equals(s.BatteryMakeName, batteryManufacture, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(releaseYear) || string.Equals(s.CarReleaseYear, releaseYear, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrEmpty(batteryType) || string.Equals(s.BatteryTypeName, batteryType, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+
+            var result = filtered.Select(s => new GradeClassBatteryDbDto
+            {
+                Row = s.Row,
+                Col = s.Col,
+                Lvl = s.Lvl,
+                LblId = s.LabelId,
+                InspGrd = s.InspectGrade,
+                SiteNm = s.SiteName,
+                ColtDat = s.CollectDate,
+                ColtResn = s.CollectReason,
+                PackMdleCd = s.PackModuleCode,
+                BtrTypeNm = s.BatteryTypeName,
+                CarRelsYear = s.CarReleaseYear,
+                CarMakeNm = s.CarMakeName,
+                CarNm = s.CarName,
+                BtrMakeNm = s.BatteryMakeName,
+            }).ToList();
+
+            return result;
+        }
+
         private async Task<IReadOnlyList<SlotInfoDto>> GetSlotsAsync(string siteCode, string factCode, string whCode, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
 
             var inspSrc = _db.Set<QltBtrInspEntity>().AsNoTracking().Where(q => q.BatteryDiagStatus == "Y");
 
-            // 1) 기본 데이터와 최신 검사결과 결합 (큰 테이블 접근 최소화)
             var baseRows = await (
                 from inv in _db.Set<InvWarehouseEntity>().AsNoTracking()
                 join btr in _db.Set<MstBtrEntity>().AsNoTracking() on inv.LabelId equals btr.LabelId into btrJoin
                 from btr in btrJoin.DefaultIfEmpty()
-                // latest inspection per label via GroupJoin + Take(1)
                 join insp1 in inspSrc on inv.LabelId equals insp1.LabelId into inspJoin
                 from insp in inspJoin
                     .OrderByDescending(i => i.InspectSeq)
@@ -50,7 +97,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                    && inv.FactoryCode == factCode
                    && inv.WarehouseCode == whCode
                    && (btr == null || btr.UseYn == "Y")
-                orderby inv.Row, inv.Col, inv.Level // Keep ordering identical to INV_WAREHOUSE logical order
+                orderby inv.Row, inv.Col, inv.Level
                 select new
                 {
                     inv.Row,
@@ -68,11 +115,9 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 }
             ).ToListAsync(ct).ConfigureAwait(false);
 
-            // 2) 조회에 필요한 키 목록 산출
             var siteCodes = baseRows.Select(r => r.SiteCode).Where(s => s != null).Distinct().ToList();
             var typeNos = baseRows.Select(r => r.BatteryTypeNo).Where(n => n.HasValue).Select(n => n.Value).Distinct().ToList();
 
-            // 3) 각종 Lookup 테이블에서 값 조회하여 메모리 사전에 적재
             var siteDict = await _db.Set<MstSiteEntity>().AsNoTracking()
                 .Where(s => siteCodes.Contains(s.SiteCode))
                 .Select(s => new { s.SiteCode, s.SiteName })
@@ -116,7 +161,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 .Select(m => new { m.BatteryMakeCode, m.BatteryMakeName })
                 .ToDictionaryAsync(x => x.BatteryMakeCode, x => x.BatteryMakeName, ct).ConfigureAwait(false);
 
-            // 4) 최종 DTO 작성 (메모리에서 조립)
             var list = baseRows.Select(r =>
             {
                 string siteName = null; siteDict.TryGetValue(r.SiteCode, out siteName);
@@ -167,59 +211,6 @@ namespace GbtpLib.Mssql.Persistence.Repositories
             }).ToList();
 
             return list;
-        }
-
-        // A Query implementation based on slot + lookups, with filters and DTO mapping
-        public async Task<IReadOnlyList<GradeClassBatteryDbDto>> SearchGradeWarehouseBatteriesAsync(
-            string siteCode,
-            string factCode,
-            string gradeWarehouseCode,
-            string labelSubstring,
-            string selectedGrade,
-            DateTime startCollectionDate,
-            DateTime endCollectionDate,
-            string carManufacture,
-            string carModel,
-            string batteryManufacture,
-            string releaseYear,
-            string batteryType,
-            CancellationToken ct = default(CancellationToken))
-        {
-            var slots = await GetSlotsAsync(siteCode, factCode, gradeWarehouseCode, ct).ConfigureAwait(false);
-
-            // Apply filters similar to A query conditions
-            var filtered = slots.Where(s =>
-                (!string.IsNullOrEmpty(s.LabelId)) &&
-                (string.IsNullOrEmpty(labelSubstring) || s.LabelId.Contains(labelSubstring)) &&
-                (string.IsNullOrEmpty(selectedGrade) || string.Equals(s.InspectGrade, selectedGrade, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrEmpty(s.CollectDate) || (startCollectionDate == DateTime.MinValue || CompareDateString(s.CollectDate, startCollectionDate) >= 0)) &&
-                (string.IsNullOrEmpty(s.CollectDate) || (endCollectionDate == DateTime.MinValue || CompareDateString(s.CollectDate, endCollectionDate) <= 0)) &&
-                (string.IsNullOrEmpty(carManufacture) || string.Equals(s.CarMakeName, carManufacture, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrEmpty(carModel) || string.Equals(s.CarName, carModel, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrEmpty(batteryManufacture) || string.Equals(s.BatteryMakeName, batteryManufacture, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrEmpty(releaseYear) || string.Equals(s.CarReleaseYear, releaseYear, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrEmpty(batteryType) || string.Equals(s.BatteryTypeName, batteryType, StringComparison.OrdinalIgnoreCase))
-            ).ToList();
-
-            var result = filtered.Select(s => new GradeClassBatteryDbDto
-            {
-                Row = s.Row,
-                Col = s.Col,
-                Lvl = s.Lvl,
-                LblId = s.LabelId,
-                InspGrd = s.InspectGrade,
-                SiteNm = s.SiteName,
-                ColtDat = s.CollectDate,
-                ColtResn = s.CollectReason,
-                PackMdleCd = s.PackModuleCode,
-                BtrTypeNm = s.BatteryTypeName,
-                CarRelsYear = s.CarReleaseYear,
-                CarMakeNm = s.CarMakeName,
-                CarNm = s.CarName,
-                BtrMakeNm = s.BatteryMakeName,
-            }).ToList();
-
-            return result;
         }
 
         private static int CompareDateString(string yyyymmdd, DateTime dt)
