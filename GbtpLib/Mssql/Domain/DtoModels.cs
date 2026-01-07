@@ -132,4 +132,10 @@ namespace GbtpLib.Mssql.Domain
         public string CarNm { get; set; } = string.Empty;
         public string BtrMakeNm { get; set; } = string.Empty;
     }
+
+    public sealed class BatteryTypeYearDto
+    {
+        public string BatteryTypeName { get; set; } = string.Empty; // MST_BTR_TYPE.BTR_TYPE_NM
+        public string CarReleaseYear { get; set; } = string.Empty;   // MST_BTR_TYPE.CAR_RELS_YEAR
+    }
 }

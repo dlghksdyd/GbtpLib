@@ -21,5 +21,7 @@ namespace GbtpLib.Mssql.Persistence.Repositories.Abstractions
         Task<IReadOnlyList<string>> GetBatteryMakeNamesAsync(CancellationToken ct = default(CancellationToken));
         Task<IReadOnlyList<string>> GetBatteryTypeNamesAsync(CancellationToken ct = default(CancellationToken));
         Task<IReadOnlyList<string>> GetReleaseYearsAsync(CancellationToken ct = default(CancellationToken));
+        Task<IReadOnlyList<string>> GetGradeNamesAsync(CancellationToken ct = default(CancellationToken));
+        Task<IReadOnlyList<BatteryTypeYearDto>> GetBatteryTypesWithYearAsync(CancellationToken ct = default(CancellationToken));
     }
 }

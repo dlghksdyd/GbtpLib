@@ -150,5 +150,28 @@ namespace GbtpLib.Mssql.Persistence.Repositories
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
         }
+
+        public async Task<IReadOnlyList<string>> GetGradeNamesAsync(CancellationToken ct = default(CancellationToken))
+        {
+            return await _db.Set<MstCodeEntity>().AsNoTracking()
+                .Where(x => x.CodeGroup == "INV002" && x.UseYn == "Y")
+                .OrderBy(x => x.ListOrder)
+                .Select(x => x.CodeName)
+                .Distinct()
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<IReadOnlyList<BatteryTypeYearDto>> GetBatteryTypesWithYearAsync(CancellationToken ct = default(CancellationToken))
+        {
+            var list = await _db.Set<MstBtrTypeEntity>().AsNoTracking()
+                .Where(x => x.UseYn == "Y")
+                .OrderBy(x => x.ListOrder)
+                .Select(x => new BatteryTypeYearDto { BatteryTypeName = x.BatteryTypeName, CarReleaseYear = x.CarReleaseYear })
+                .Distinct()
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+            return list;
+        }
     }
 }
