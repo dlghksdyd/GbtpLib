@@ -61,6 +61,7 @@
     <Compile Include="Mssql\Application\UseCases\LoginUseCase.cs" />
     <Compile Include="Mssql\Application\UseCases\MetadataUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\QltBtrInoutInspectionUseCases.cs" />
+    <Compile Include="Mssql\Application\UseCases\SystemConnectionUseCases.cs" />
     <Compile Include="Mssql\Application\UseCases\WarehouseSlotUseCases.cs" />
     <Compile Include="Mssql\Configuration\DbConnectionSettings.cs" />
     <Compile Include="Mssql\Domain\DtoModels.cs" />
@@ -163,7 +164,7 @@
     <Compile Include="Mssql\Persistence\UnitOfWork\EfUnitOfWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="packages.config" />
-    <None Include="Reference\IF_CMD.csv" />
+    <None Include="Reference\ITF_CMD_DATA.csv" />
     <None Include="Reference\MsSqlBasic.cs" />
     <None Include="Reference\IncomeSystem\AllBatterySlotViewModel.cs" />
     <None Include="Reference\IncomeSystem\EnvVariableViewModel.cs" />
@@ -188,7 +189,7 @@
   <Import Project="..\packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>???�로?�트????컴퓨?�에 ?�는 NuGet ?�키지�?참조?�니?? ?�당 ?�키지�??�운로드?�려�?NuGet ?�키지 복원???�용?�십?�오. ?�세???�용?�?http://go.microsoft.com/fwlink/?LinkID=322105�?참조?�십?�오. ?�락???�일?�?{0}?�니??</ErrorText>
+      <ErrorText>???�로?�트????컴퓨?�에 ?�는 NuGet ?�키지�?참조?�니?? ?�당 ?�키지�??�운로드?�려�?NuGet ?�키지 복원???�용?�십?�오. ?�세???�용?�?http://go.microsoft.com/fwlink/?LinkID=322105�?참조?�십?�오. ?�락???�일?�?{0}?�니??</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
     <Error Condition="!Exists('..\..\packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
