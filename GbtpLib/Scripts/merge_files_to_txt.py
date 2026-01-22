@@ -15,11 +15,20 @@ def merge_files_to_txt(source_dir: str, output_file: str) -> None:
 
     merged = 0
 
+    # Directory names to exclude (case-insensitive)
+    excluded_dir_names = {"bin", "obj", ".vs"}
+
     with open(output_file, "w", encoding="utf-8") as out:
         out.write(f"# Merged from: {source_dir}\n")
         out.write(f"# Generated: {datetime.now().isoformat()}\n\n")
 
-        for root, _dirs, files in os.walk(source_dir):
+        for root, dirs, files in os.walk(source_dir):
+            # Prune excluded directories so os.walk won't descend into them.
+            dirs[:] = [
+                d for d in dirs
+                if d.lower() not in excluded_dir_names
+            ]
+
             files.sort()
             for name in files:
                 path = os.path.join(root, name)
@@ -48,7 +57,7 @@ def merge_files_to_txt(source_dir: str, output_file: str) -> None:
 
 if __name__ == "__main__":
     # Fixed paths per request
-    source = r"C:\workspace\gbtp-inline-income-and-outcome\GBTPDiagnosisSystem\Devices\CAN"
-    output = r"C:\workspace\gbtp-inline-income-and-outcome\GBTPDiagnosisSystem\Devices\CAN\CAN_merged.txt"
+    source = r"C:\workspace\mdbc2generator\CanProtocolEditor"
+    output = r"C:\workspace\mdbc2generator\CanProtocolEditor\CanProtocolEditor.txt"
 
     merge_files_to_txt(source, output)
